@@ -5,5 +5,5 @@ type Films struct {
 	Name        string
 	Description string
 	Rating      float64
-	Actors      []Actors
+	Actors      []*Actors
 }
