@@ -8,4 +8,5 @@ type Actors struct {
 	LastName    string
 	Gender      string
 	DateOfBirth time.Time
+	Films       []*Films
 }
