@@ -15,8 +15,6 @@ func (h *UserHandler) Delete(log *slog.Logger) http.HandlerFunc {
 			slog.String("op", op),
 		)
 
-		// TODO: change login to id
-
 		login := r.URL.Query().Get("login")
 		if login == "" {
 			log.Error("failed to parse login from url")
@@ -27,7 +25,7 @@ func (h *UserHandler) Delete(log *slog.Logger) http.HandlerFunc {
 			return
 		}
 
-		_, err := h.users.GetByLogin(r.Context(), login)
+		user, err := h.users.GetByLogin(r.Context(), login)
 		if err != nil {
 			log.Error("failed to delete there is no user with login:"+login, sl.Err(err))
 
@@ -37,7 +35,7 @@ func (h *UserHandler) Delete(log *slog.Logger) http.HandlerFunc {
 			return
 		}
 
-		err = h.users.Delete(r.Context(), login)
+		err = h.users.Delete(r.Context(), user.Id)
 		if err != nil {
 			log.Error("failed to delete user", sl.Err(err))
 

@@ -6,11 +6,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
 	"tiny/internal/api/request"
 	"tiny/internal/logger/sl"
 	"tiny/internal/models"
-	"tiny/internal/usecase"
 )
 
 func (h *UserHandler) Login(log *slog.Logger) http.HandlerFunc {
@@ -27,8 +27,8 @@ func (h *UserHandler) Login(log *slog.Logger) http.HandlerFunc {
 		if err != nil {
 			log.Error("failed to decode body", sl.Err(err))
 
-			w.Write([]byte("invalid request"))
 			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("invalid request"))
 
 			return
 		}
@@ -36,16 +36,16 @@ func (h *UserHandler) Login(log *slog.Logger) http.HandlerFunc {
 		if req.Login == "" {
 			log.Error("try to login without username")
 
-			w.Write([]byte("field login is required"))
 			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("field login is required"))
 
 			return
 		}
 		if req.Password == "" {
 			log.Error("try to login without password")
 
-			w.Write([]byte("field password is required"))
 			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("field password is required"))
 
 			return
 		}
@@ -56,8 +56,8 @@ func (h *UserHandler) Login(log *slog.Logger) http.HandlerFunc {
 		if err != nil {
 			log.Error("failed to get user by login", sl.Err(err))
 
-			w.Write([]byte("failed to get user"))
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("invalid login or password"))
 
 			return
 		}
@@ -66,8 +66,8 @@ func (h *UserHandler) Login(log *slog.Logger) http.HandlerFunc {
 		if err != nil {
 			log.Error("failed to compare passwords", sl.Err(err))
 
-			w.Write([]byte("invalid login or password"))
 			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("invalid login or password"))
 
 			return
 		}
@@ -78,8 +78,8 @@ func (h *UserHandler) Login(log *slog.Logger) http.HandlerFunc {
 		if err != nil {
 			log.Error("failed to generate access token", sl.Err(err))
 
-			w.Write([]byte("failed to create token"))
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("failed to create token"))
 
 			return
 		}
@@ -96,21 +96,21 @@ func (h *UserHandler) Login(log *slog.Logger) http.HandlerFunc {
 
 		sessionCheck, err := h.sessions.GetByUserId(r.Context(), user.Id)
 
-		if errors.Is(err, usecase.ErrNoSession) {
+		if errors.Is(err, os.ErrNotExist) {
 			_, err = h.sessions.Add(r.Context(), refreshToken, user.Id, h.sessionTTL)
 			if err != nil {
 				log.Error("failed to create session", sl.Err(err))
 
-				w.Write([]byte("failed to create session"))
 				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("failed to create session"))
 
 				return
 			}
 		} else if err != nil {
 			log.Error("failed to get session", sl.Err(err))
 
-			w.Write([]byte("internal error"))
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("internal error"))
 
 			return
 		} else {
@@ -118,8 +118,8 @@ func (h *UserHandler) Login(log *slog.Logger) http.HandlerFunc {
 			if err != nil {
 				log.Error("failed to update session", sl.Err(err))
 
-				w.Write([]byte("internal error"))
 				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("internal error"))
 
 				return
 			}
