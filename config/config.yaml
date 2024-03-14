@@ -1,9 +1,13 @@
-storage_path: postgres://saljaev:secret@localhost:5432/kosloeb?sslmode=disable
+#FOR DOCKER
+#storage_path: postgres://saljaev:secret@db:5432/kosloeb?sslmode=disable
+
+#FOR LOCAL
+storage_path: postgres://kosloeb:secret@localhost:5432/kosloeb?sslmode=disable
 http_server:
   address: "localhost:8080"
   timeout: 4s
   idle_timeout: 60s
-  secret: secret
-  token_ttl: 5m
-  session_ttl: 1h
-  token_length: 10
+secret: secret
+token_ttl: 5m
+session_ttl: 1h
+#token_length: 10
