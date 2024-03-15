@@ -1,15 +1,33 @@
 package request
 
-import "time"
+import (
+	"time"
+)
 
-type UserRequest struct {
-	Login    string `json:"login"`
-	Password string `json:"password"`
-}
+type (
+	DateTime struct {
+		Format string
+		time.Time
+	}
 
-type Actor struct {
-	FirstName   string    `json:"first_name,omitempty"`
-	LastName    string    `json:"second_name,omitempty"`
-	DateOfBirth time.Time `json:"date_of_birth,omitempty"`
-	Gender      string    `json:"gender,omitempty"`
-}
+	UserRequest struct {
+		Login    string `json:"login"`
+		Password string `json:"password"`
+	}
+
+	Actor struct {
+		FirstName   string `json:"first_name"`
+		LastName    string `json:"second_name"`
+		DateOfBirth string `json:"date_of_birth"`
+		Gender      string `json:"gender"`
+		//Films       []string  `json:"films"`
+	}
+
+	Films struct {
+		Name        string   `json:"name"`
+		Description string   `json:"description"`
+		Rating      float64  `json:"rating"`
+		ReleaseDate string   `json:"release_date"`
+		Actors      []*Actor `json:"actors"`
+	}
+)
