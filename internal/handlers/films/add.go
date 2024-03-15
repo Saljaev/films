@@ -58,7 +58,7 @@ func (f *FilmsHandler) Add(log *slog.Logger) http.HandlerFunc {
 			return
 		}
 
-		date, err := time.Parse(request.YYYYMMDD, req.ReleaseDate)
+		date, err := time.Parse(time.DateOnly, req.ReleaseDate)
 
 		if err != nil {
 			log.Error("invalid film's date format", slog.Any("date", req.ReleaseDate))
@@ -78,7 +78,7 @@ func (f *FilmsHandler) Add(log *slog.Logger) http.HandlerFunc {
 		}
 
 		for i := range req.Actors {
-			time, err := time.Parse(request.YYYYMMDD, req.Actors[i].DateOfBirth)
+			time, err := time.Parse(time.DateOnly, req.Actors[i].DateOfBirth)
 			if err != nil {
 				log.Error("invalid film actor's date format", slog.Any("date", req.Actors[i].DateOfBirth))
 
