@@ -88,8 +88,8 @@ func (h *UserHandler) Login(log *slog.Logger) http.HandlerFunc {
 		if err != nil {
 			log.Error("failed to generate refresh token", sl.Err(err))
 
-			w.Write([]byte("failed to create token"))
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("failed to create token"))
 
 			return
 		}
@@ -127,8 +127,8 @@ func (h *UserHandler) Login(log *slog.Logger) http.HandlerFunc {
 
 		SetCookie(w, accessToken, refreshToken, h.tokenTTL, h.sessionTTL)
 
-		w.Write([]byte("login successful"))
 		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("login successful"))
 	}
 }
 
