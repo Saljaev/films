@@ -47,7 +47,23 @@ func (fs *FilmsUseCase) Add(ctx context.Context, f models.Films) (int, error) {
 }
 
 func (fs *FilmsUseCase) Update(ctx context.Context, f models.Films) error {
-	panic("implement me")
+	const op = "FilmsUseCase - Update"
+
+	film := entities.Films{
+		Id:          f.Id,
+		Name:        f.Name,
+		Description: f.Description,
+		Rating:      f.Rating,
+		ReleaseDate: f.ReleaseDate,
+	}
+
+	err := fs.repo.Update(ctx, film)
+	if err != nil {
+		return fmt.Errorf("%s - fs.repo.Update: %w", op, err)
+	}
+
+	return nil
+
 }
 
 func (fs *FilmsUseCase) Delete(ctx context.Context, id int) error {
