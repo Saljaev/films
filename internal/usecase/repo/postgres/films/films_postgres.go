@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 	"tiny/internal/entities"
 	"tiny/internal/usecase"
 )
@@ -56,7 +57,31 @@ func (fr *FilmsRepo) Add(ctx context.Context, f entities.Films) (int, error) {
 }
 
 func (fr *FilmsRepo) Update(ctx context.Context, f entities.Films) error {
-	panic("implement me")
+	const op = "FilmsRepo - Update"
+
+	query := "UPDATE films SET " +
+		"name = COALESCE(NULLIF($1, ''), name)," +
+		"description = COALESCE(NULLIF($2, ''), description)," +
+		"rating = COALESCE(NULLIF($3, 0.0), rating)," +
+		"release_date = COALESCE(NULLIF($4, $5)::timestamp, release_date)" +
+		"WHERE id = $6"
+
+	var zeroTime time.Time
+
+	res, err := fr.ExecContext(ctx, query, f.Name, f.Description, f.Rating, f.ReleaseDate, zeroTime, f.Id)
+	if err != nil {
+		return fmt.Errorf("%s - fr.QueryRowConext: %w", op, err)
+	}
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%s - fr.QueryRowConext: %w", op, err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf(errors.New("no data updating").Error())
+	}
+
+	return nil
 }
 
 func (fr *FilmsRepo) Delete(ctx context.Context, id int) error {
