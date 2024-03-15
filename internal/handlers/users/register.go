@@ -23,8 +23,26 @@ func (h *UserHandler) Register(log *slog.Logger) http.HandlerFunc {
 		if err != nil {
 			log.Error("failed to decode body", sl.Err(err))
 
-			w.Write([]byte("invalid request"))
 			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("invalid request"))
+
+			return
+		}
+
+		if req.Login == "" {
+			log.Error("try to login without username")
+
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("field login is required"))
+
+			return
+		}
+
+		if req.Password == "" {
+			log.Error("try to login without password")
+
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("field password is required"))
 
 			return
 		}
@@ -38,15 +56,15 @@ func (h *UserHandler) Register(log *slog.Logger) http.HandlerFunc {
 		if err != nil {
 			log.Error("failed to create user", sl.Err(err))
 
-			w.Write([]byte("failed to register"))
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("failed to register"))
 
 			return
 		}
 
 		log.Info("user add", slog.Any("id", id))
 
-		w.Write([]byte("user register"))
 		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("user register"))
 	}
 }
