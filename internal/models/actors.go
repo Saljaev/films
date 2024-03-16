@@ -8,4 +8,5 @@ type Actor struct {
 	LastName    string    `json:"last_name,omitempty"`
 	Gender      string    `json:"gender,omitempty"`
 	DateOfBirth time.Time `json:"date_of_birth,omitempty"`
+	Films       []*Films
 }
