@@ -64,12 +64,14 @@ func Run() {
 	router.Handle("/user.create", userHandler.Register(log))
 	router.Handle("/user.login", userHandler.Login(log))
 
-	router.Handle("POST /actor.create/", actorsHandler.Add(log))
-	router.Handle("POST /actor.update/", actorsHandler.Update(log))
+	router.Handle("/actor.create/", actorsHandler.Add(log))
+	router.Handle("/actor.update/", actorsHandler.Update(log))
 
-	router.Handle("/film.add", filmsHandler.Add(log))
-	router.Handle("/film.update/", filmsHandler.Update(log))
-	router.Handle("/film.delete/", filmsHandler.Delete(log))
+	router.Handle("/film.add", userHandler.Validate(userHandler.CheckRole(filmsHandler.Add(log))))
+	router.Handle("/film.update/", userHandler.Validate(userHandler.CheckRole(filmsHandler.Update(log))))
+	router.Handle("/film.delete/", userHandler.Validate(userHandler.CheckRole(filmsHandler.Delete(log))))
+	router.Handle("/film.search_by_fragment", filmsHandler.SearchByFragment(log))
+	router.Handle("/film.get", filmsHandler.GetWithSort(log))
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)

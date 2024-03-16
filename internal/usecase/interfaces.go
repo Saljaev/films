@@ -26,7 +26,8 @@ type (
 		Add(ctx context.Context, f models.Films) (int, error)
 		Update(ctx context.Context, f models.Films) error
 		Delete(ctx context.Context, id int) error
-		SearchByFragment(ctx context.Context, fragment, owner string) ([]*models.Films, error)
+		SearchByFilmName(ctx context.Context, name string) ([]*models.Films, error)
+		SearchByActorName(ctx context.Context, firstName, lastName string) ([]*models.Films, error)
 		RateByField(ctx context.Context, fragment string, increasing bool) ([]*models.Films, error)
 	}
 
@@ -34,7 +35,8 @@ type (
 		Add(ctx context.Context, f entities.Films) (int, error)
 		Update(ctx context.Context, f entities.Films) error
 		Delete(ctx context.Context, id int) error
-		SearchByFragment(ctx context.Context, fragment, owner string) ([]*entities.Films, error)
+		SearchByFilmName(ctx context.Context, name string) ([]*entities.Films, error)
+		SearchByActorName(ctx context.Context, firstName, lastName string) ([]*entities.Films, error)
 		RateByField(ctx context.Context, fragment string, increasing string) ([]*entities.Films, error)
 	}
 
