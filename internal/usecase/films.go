@@ -49,12 +49,26 @@ func (fs *FilmsUseCase) Add(ctx context.Context, f models.Films) (int, error) {
 func (fs *FilmsUseCase) Update(ctx context.Context, f models.Films) error {
 	const op = "FilmsUseCase - Update"
 
+	var actors []*entities.Actors
+
+	for i := range f.Actors {
+		actor := entities.Actors{
+			FirstName:   f.Actors[i].FirstName,
+			LastName:    f.Actors[i].LastName,
+			Gender:      f.Actors[i].Gender,
+			DateOfBirth: f.Actors[i].DateOfBirth,
+		}
+
+		actors = append(actors, &actor)
+	}
+
 	film := entities.Films{
 		Id:          f.Id,
 		Name:        f.Name,
 		Description: f.Description,
 		Rating:      f.Rating,
 		ReleaseDate: f.ReleaseDate,
+		Actors:      actors,
 	}
 
 	err := fs.repo.Update(ctx, film)

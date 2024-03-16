@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 	"tiny/internal/entities"
 	"tiny/internal/usecase"
@@ -31,11 +32,18 @@ func (fr *FilmsRepo) Add(ctx context.Context, f entities.Films) (int, error) {
 		return 0, fmt.Errorf("%s - fr.QueryRowContext - films: %w", op, err)
 	}
 
+	tx, err := fr.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, fmt.Errorf("%s - fr.BeginTx: %w", op, err)
+	}
+
+	defer tx.Rollback()
+
 	for i := range f.Actors {
 		var id int
 
 		query = "INSERT INTO actors(first_name,last_name,gender,date_of_birth) VALUES($1, $2, $3, $4) ON CONFLICT DO NOTHING RETURNING id"
-		err = fr.QueryRowContext(ctx, query, f.Actors[i].FirstName, f.Actors[i].LastName, f.Actors[i].Gender, f.Actors[i].DateOfBirth).Scan(&id)
+		err = tx.QueryRowContext(ctx, query, f.Actors[i].FirstName, f.Actors[i].LastName, f.Actors[i].Gender, f.Actors[i].DateOfBirth).Scan(&id)
 		if errors.Is(err, sql.ErrNoRows) {
 			query = "SELECT id FROM actors WHERE first_name = $1 AND last_name = $2 AND gender = $3 AND date_of_birth = $4"
 			err = fr.QueryRowContext(ctx, query, f.Actors[i].FirstName, f.Actors[i].LastName, f.Actors[i].Gender, f.Actors[i].DateOfBirth).Scan(&id)
@@ -47,10 +55,15 @@ func (fr *FilmsRepo) Add(ctx context.Context, f entities.Films) (int, error) {
 		}
 
 		query = "INSERT INTO actors_from_films(actors_id, films_id) VALUES($1,$2) ON CONFLICT(actors_id, films_id) DO NOTHING"
-		_, err = fr.ExecContext(ctx, query, id, filmId)
+		_, err = tx.ExecContext(ctx, query, id, filmId)
 		if err != nil {
 			return 0, fmt.Errorf("%s - tx.ExecContext: %w", op, err)
 		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return 0, fmt.Errorf("%s - tx.Commit: %w", op, err)
 	}
 
 	return filmId, nil
@@ -74,18 +87,87 @@ func (fr *FilmsRepo) Update(ctx context.Context, f entities.Films) error {
 	}
 	rowsAffected, err := res.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("%s - fr.QueryRowConext: %w", op, err)
+		return fmt.Errorf("%s - res.RowsAffected: %w", op, err)
 	}
 
 	if rowsAffected == 0 {
 		return fmt.Errorf(errors.New("no data updating").Error())
 	}
 
+	tx, err := fr.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("%s - fr.BeginTx: %w", op, err)
+	}
+
+	defer tx.Rollback()
+
+	for i := range f.Actors {
+		var id int
+
+		query = "INSERT INTO actors(first_name,last_name,gender,date_of_birth) VALUES($1, $2, $3, $4) ON CONFLICT DO NOTHING RETURNING id"
+		err = tx.QueryRowContext(ctx, query, f.Actors[i].FirstName, f.Actors[i].LastName, f.Actors[i].Gender, f.Actors[i].DateOfBirth).Scan(&id)
+		if errors.Is(err, sql.ErrNoRows) {
+			query = "SELECT id FROM actors WHERE first_name = $1 AND last_name = $2 AND gender = $3 AND date_of_birth = $4"
+			err = fr.QueryRowContext(ctx, query, f.Actors[i].FirstName, f.Actors[i].LastName, f.Actors[i].Gender, f.Actors[i].DateOfBirth).Scan(&id)
+			if err != nil {
+				return fmt.Errorf("%s - tx.QueryRowContext - actors: %w", op, err)
+			}
+		} else if err != nil {
+			return fmt.Errorf("%s - tx.QueryRowContext - actors: %w", op, err)
+		}
+
+		query = "INSERT INTO actors_from_films(actors_id, films_id) VALUES($1,$2) ON CONFLICT(actors_id, films_id) DO NOTHING"
+		_, err = tx.ExecContext(ctx, query, id, f.Id)
+		if err != nil {
+			return fmt.Errorf("%s - tx.ExecContext: %w", op, err)
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("%s - tx.Commit: %w", op, err)
+	}
+
 	return nil
 }
 
 func (fr *FilmsRepo) Delete(ctx context.Context, id int) error {
-	panic("implement me")
+	const op = "FilmsRepo - Delete"
+
+	tx, err := fr.BeginTx(ctx, nil)
+	if err != nil {
+		fmt.Errorf("%s - fr.BeginTx: %w", op, err)
+	}
+
+	defer tx.Rollback()
+
+	query := "DELETE FROM actors_from_films WHERE films_id = $1"
+	_, err = tx.ExecContext(ctx, query, id)
+	if err != nil {
+		fmt.Errorf("%s - tx.ExecContext - actors_from_films: %w", op, err)
+	}
+
+	query = "DELETE FROM films WHERE id = $1"
+	res, err := tx.ExecContext(ctx, query, id)
+	if err != nil {
+		fmt.Errorf("%s - tx.ExecContext - films: %w", op, err)
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%s - res.RowsAffected: %w", op, err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("%s - res.RowsAffected: %w", op, os.ErrNotExist)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		fmt.Errorf("%s - tx.Commit: %w", op, err)
+	}
+
+	return nil
 }
 
 func (fr *FilmsRepo) SearchByFragment(ctx context.Context, fragment, owner string) ([]*entities.Films, error) {
