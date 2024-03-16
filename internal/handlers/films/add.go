@@ -71,11 +71,11 @@ func (f *FilmsHandler) Add(log *slog.Logger) http.HandlerFunc {
 
 		var actors []*models.Actor
 
-		validGender := map[string]bool{
-			"male":   true,
-			"female": true,
-			"other":  true,
-		}
+		//validGender := map[string]bool{
+		//	"male":   true,
+		//	"female": true,
+		//	"other":  true,
+		//}
 
 		for i := range req.Actors {
 			time, err := time.Parse(time.DateOnly, req.Actors[i].DateOfBirth)
@@ -88,7 +88,7 @@ func (f *FilmsHandler) Add(log *slog.Logger) http.HandlerFunc {
 				return
 			}
 
-			_, isGenderValid := validGender[req.Actors[i].Gender]
+			isGenderValid := ValidateGender(req.Actors[i].Gender)
 			if !isGenderValid {
 				log.Error("invalid film actor's gender", slog.Any("gender", req.Actors[i].Gender))
 
@@ -131,4 +131,14 @@ func (f *FilmsHandler) Add(log *slog.Logger) http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("film add"))
 	}
+}
+
+func ValidateGender(gender string) bool {
+	validGenders := map[string]bool{
+		"male":   true,
+		"female": true,
+		"other":  true,
+	}
+	_, isValid := validGenders[gender]
+	return isValid
 }
