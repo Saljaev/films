@@ -170,10 +170,91 @@ func (fr *FilmsRepo) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
-func (fr *FilmsRepo) SearchByFragment(ctx context.Context, fragment, owner string) ([]*entities.Films, error) {
-	panic("implement me")
+func (fr *FilmsRepo) SearchByFilmName(ctx context.Context, name string) ([]*entities.Films, error) {
+	const op = "FilmsRepo - SearchByFilmName"
+
+	query := "SELECT films.*, actors.*" +
+		"FROM films " +
+		"LEFT JOIN actors_from_films actorsfilm ON actorsfilm.films_id=films.id " +
+		"LEFT JOIN actors ON actors.id = actorsfilm.actors_id " +
+		"WHERE films.name ILIKE '%' || $1 || '%' " +
+		"ORDER BY films.name, films.id, actors.id;"
+
+	rows, err := fr.Query(query, name)
+	if err != nil {
+		return nil, fmt.Errorf("%s - fr.Query: %w", op, err)
+	}
+
+	defer rows.Close()
+
+	var films []*entities.Films
+
+	for rows.Next() {
+		film := entities.Films{}
+		actor := entities.Actors{}
+		rows.Scan(&film.Id, &film.Name, &film.Description, &film.Rating, &film.ReleaseDate,
+			&actor.Id, &actor.FirstName, &actor.LastName, &actor.Gender, &actor.DateOfBirth)
+
+		film.Actors = append(film.Actors, &actor)
+		films = append(films, &film)
+	}
+
+	return films, nil
+}
+
+func (fr *FilmsRepo) SearchByActorName(ctx context.Context, firstName, lastName string) ([]*entities.Films, error) {
+	const op = "FilmsRepo - SearchByActorName"
+
+	query := "SELECT films.*, actors.*" +
+		"FROM films " +
+		"LEFT JOIN actors_from_films actorsfilm ON actorsfilm.films_id=films.id " +
+		"LEFT JOIN actors ON actors.id = actorsfilm.actors_id " +
+		"WHERE actors.first_name ILIKE '%' || $1 || '%' OR actors.last_name ILIKE '%' || $2 || '%' " +
+		"GROUP BY films.id, actors.id;"
+
+	rows, err := fr.Query(query, firstName, lastName)
+	if err != nil {
+		return nil, fmt.Errorf("%s - fr.Query: %w", op, err)
+	}
+
+	defer rows.Close()
+
+	var films []*entities.Films
+
+	for rows.Next() {
+		film := entities.Films{}
+		actor := entities.Actors{}
+		rows.Scan(&film.Id, &film.Name, &film.Description, &film.Rating, &film.ReleaseDate,
+			&actor.Id, &actor.FirstName, &actor.LastName, &actor.Gender, &actor.DateOfBirth)
+
+		film.Actors = append(film.Actors, &actor)
+		films = append(films, &film)
+	}
+
+	return films, nil
 }
 
 func (fr *FilmsRepo) RateByField(ctx context.Context, fragment string, increasing string) ([]*entities.Films, error) {
-	panic("implement me")
+	const op = "FilmsRepo - RateByField"
+
+	query := "SELECT * FROM films ORDER BY " + fragment + " " + increasing
+
+	rows, err := fr.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("%s - fr.Query: %w", op, err)
+	}
+
+	defer rows.Close()
+
+	var films []*entities.Films
+
+	for rows.Next() {
+		film := entities.Films{}
+
+		rows.Scan(&film.Id, &film.Name, &film.Description, &film.Rating, &film.ReleaseDate)
+
+		films = append(films, &film)
+	}
+
+	return films, nil
 }

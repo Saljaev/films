@@ -91,32 +91,69 @@ func (fs *FilmsUseCase) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
-func (fs *FilmsUseCase) SearchByFragment(ctx context.Context, fragment, owner string) ([]*models.Films, error) {
-	const op = "FilmsUseCase - SearchByFragment"
+func (fs *FilmsUseCase) SearchByFilmName(ctx context.Context, name string) ([]*models.Films, error) {
+	const op = "FilmsUseCase - SearchByFilmName"
 
-	films, err := fs.repo.SearchByFragment(ctx, fragment, owner)
+	films, err := fs.repo.SearchByFilmName(ctx, name)
 	if err != nil {
-		return nil, fmt.Errorf("%s - fs.repo.SearchByFragment: %w", op, err)
+		return nil, fmt.Errorf("%s - fs.repo.SearchByFilmName: %w", op, err)
 	}
 
 	var res []*models.Films
 
 	for i := range films {
-		var actors []*models.Actor
-
-		for j := range films {
-			actors = append(actors, &models.Actor{
-				FirstName: films[i].Actors[j].FirstName,
-				LastName:  films[i].Actors[j].LastName,
-			})
-		}
-
 		film := models.Films{
+			Id:          films[i].Id,
 			Name:        films[i].Name,
 			Description: films[i].Description,
 			Rating:      films[i].Rating,
-			Actors:      actors,
+			ReleaseDate: films[i].ReleaseDate,
 		}
+
+		actor := models.Actor{
+			Id:          films[i].Actors[0].Id,
+			FirstName:   films[i].Actors[0].FirstName,
+			LastName:    films[i].Actors[0].LastName,
+			Gender:      films[i].Actors[0].Gender,
+			DateOfBirth: films[i].Actors[0].DateOfBirth,
+		}
+
+		film.Actors = append(film.Actors, &actor)
+
+		res = append(res, &film)
+	}
+
+	return res, nil
+}
+
+func (fs *FilmsUseCase) SearchByActorName(ctx context.Context, firstName, lastName string) ([]*models.Films, error) {
+	const op = "FilmsUseCase - SearchByActorName"
+
+	films, err := fs.repo.SearchByActorName(ctx, firstName, lastName)
+	if err != nil {
+		return nil, fmt.Errorf("%s - fs.repo.SearchByActorName: %w", op, err)
+	}
+
+	var res []*models.Films
+
+	for i := range films {
+		film := models.Films{
+			Id:          films[i].Id,
+			Name:        films[i].Name,
+			Description: films[i].Description,
+			Rating:      films[i].Rating,
+			ReleaseDate: films[i].ReleaseDate,
+		}
+
+		actor := models.Actor{
+			Id:          films[i].Actors[0].Id,
+			FirstName:   films[i].Actors[0].FirstName,
+			LastName:    films[i].Actors[0].LastName,
+			Gender:      films[i].Actors[0].Gender,
+			DateOfBirth: films[i].Actors[0].DateOfBirth,
+		}
+
+		film.Actors = append(film.Actors, &actor)
 
 		res = append(res, &film)
 	}
@@ -127,6 +164,17 @@ func (fs *FilmsUseCase) SearchByFragment(ctx context.Context, fragment, owner st
 func (fs *FilmsUseCase) RateByField(ctx context.Context, fragment string, increasing bool) ([]*models.Films, error) {
 	const op = "FilmsUseCase - RateByField"
 
+	fields := map[string]string{
+		"name":           "name",
+		"rating":         "rating",
+		"releasing_date": "release_date",
+	}
+
+	field, ok := fields[fragment]
+	if !ok {
+		field = "rating"
+	}
+
 	var order string
 
 	if increasing {
@@ -135,7 +183,7 @@ func (fs *FilmsUseCase) RateByField(ctx context.Context, fragment string, increa
 		order = "DESC"
 	}
 
-	films, err := fs.repo.RateByField(ctx, fragment, order)
+	films, err := fs.repo.RateByField(ctx, field, order)
 	if err != nil {
 		fmt.Errorf("%s - fs.repo.RateByField: %w", op, err)
 	}
@@ -143,20 +191,11 @@ func (fs *FilmsUseCase) RateByField(ctx context.Context, fragment string, increa
 	var res []*models.Films
 
 	for i := range films {
-		var actors []*models.Actor
-
-		for j := range films {
-			actors = append(actors, &models.Actor{
-				FirstName: films[i].Actors[j].FirstName,
-				LastName:  films[i].Actors[j].LastName,
-			})
-		}
-
 		film := models.Films{
 			Name:        films[i].Name,
 			Description: films[i].Description,
 			Rating:      films[i].Rating,
-			Actors:      actors,
+			ReleaseDate: films[i].ReleaseDate,
 		}
 
 		res = append(res, &film)
