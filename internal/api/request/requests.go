@@ -30,4 +30,16 @@ type (
 		ReleaseDate string   `json:"release_date"`
 		Actors      []*Actor `json:"actors"`
 	}
+
+	GetFilms struct {
+		Name        string  `json:"film_name"`
+		ActorName   string  `json:"actor_name"`
+		Rating      float64 `json:"rating"`
+		ReleaseDate string  `json:"release_date"`
+	}
+
+	GetFilmSort struct {
+		Field      string `json:"field"`
+		Increasing bool   `json:"increasing"`
+	}
 )
