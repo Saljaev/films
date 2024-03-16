@@ -69,6 +69,7 @@ func Run() {
 
 	router.Handle("/film.add", filmsHandler.Add(log))
 	router.Handle("/film.update/", filmsHandler.Update(log))
+	router.Handle("/film.delete/", filmsHandler.Delete(log))
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
