@@ -145,8 +145,6 @@ func (f *FilmsHandler) SearchByFragment(log *slog.Logger) http.HandlerFunc {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("no films found"))
 		} else {
-			//var res response.Films
-
 			res, err := json.Marshal(filmArr)
 			if err != nil {
 				log.Error("failed to marhal films", sl.Err(err))
@@ -154,11 +152,10 @@ func (f *FilmsHandler) SearchByFragment(log *slog.Logger) http.HandlerFunc {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("internal error"))
 			}
+			log.Info("successful film search")
 
 			w.WriteHeader(http.StatusOK)
 			w.Write(res)
 		}
-
 	}
-
 }

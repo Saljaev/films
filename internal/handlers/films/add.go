@@ -71,12 +71,6 @@ func (f *FilmsHandler) Add(log *slog.Logger) http.HandlerFunc {
 
 		var actors []*models.Actor
 
-		//validGender := map[string]bool{
-		//	"male":   true,
-		//	"female": true,
-		//	"other":  true,
-		//}
-
 		for i := range req.Actors {
 			time, err := time.Parse(time.DateOnly, req.Actors[i].DateOfBirth)
 			if err != nil {
@@ -107,6 +101,8 @@ func (f *FilmsHandler) Add(log *slog.Logger) http.HandlerFunc {
 
 			actors = append(actors, &actor)
 		}
+
+		log.Info("request decoded", slog.Any("request", req))
 
 		film := models.Films{
 			Name:        req.Name,
