@@ -9,17 +9,20 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	actorshandler "tiny/internal/api/handlers/actors"
+	filmshandler "tiny/internal/api/handlers/films"
+	"tiny/internal/api/handlers/middleware"
+	"tiny/internal/api/utilapi"
 	"tiny/internal/config"
-	actorshandler "tiny/internal/handlers/actors"
-	filmshandler "tiny/internal/handlers/films"
 	"tiny/internal/logger/slogpretty"
 	actorrepo "tiny/internal/usecase/repo/postgres/actors"
 	filmrepo "tiny/internal/usecase/repo/postgres/films"
 	sessionrepo "tiny/internal/usecase/repo/postgres/session"
 	userrepo "tiny/internal/usecase/repo/postgres/users"
+	"tiny/pkg"
 
 	_ "github.com/lib/pq"
-	userhandler "tiny/internal/handlers/users"
+	userhandler "tiny/internal/api/handlers/users"
 	"tiny/internal/logger/sl"
 	"tiny/internal/usecase"
 )
@@ -51,27 +54,30 @@ func Run() {
 	actors := usecase.NewActorsUseCase(actorrepo.NewActorsRepo(db))
 	films := usecase.NewFilmsUseCase(filmrepo.NewFilmsRepo(db))
 
-	jwtManager := userhandler.NewJWTManager(cfg.Secret, cfg.TokenTTL)
+	jwtManager := pkg.NewJWTManager(cfg.Secret, cfg.TokenTTL)
 
 	userHandler := userhandler.NewUserHandler(users, sessions, *jwtManager, cfg.TokenTTL, cfg.SessionTTL)
-	actorsHandler := actorshandler.NewActorsHandler(actors)
 	filmsHandler := filmshandler.NewFilmsHandler(films)
+	actorsHandler := actorshandler.NewActorsHandler(actors)
 
-	// TODO: init router
-	router := http.NewServeMux()
+	m := middleware.NewMiddleware(users, sessions, *jwtManager, cfg.TokenTTL, cfg.SessionTTL)
 
-	router.Handle("/user.delete/", userHandler.Validate(userHandler.CheckRole(userHandler.Delete(log))))
-	router.Handle("/user.create", userHandler.Register(log))
-	router.Handle("/user.login", userHandler.Login(log))
+	router := utilapi.NewRouter(log)
 
-	router.Handle("/actor.create/", actorsHandler.Add(log))
-	router.Handle("/actor.update/", actorsHandler.Update(log))
+	router.Handle("POST /user/register", userHandler.Register)
+	router.Handle("POST /user/login", userHandler.Login)
+	router.Handle("DELETE /user/", m.Validate, m.CheckRole, userHandler.Delete)
 
-	router.Handle("/film.add", userHandler.Validate(userHandler.CheckRole(filmsHandler.Add(log))))
-	router.Handle("/film.update/", userHandler.Validate(userHandler.CheckRole(filmsHandler.Update(log))))
-	router.Handle("/film.delete/", userHandler.Validate(userHandler.CheckRole(filmsHandler.Delete(log))))
-	router.Handle("/film.search_by_fragment", filmsHandler.SearchByFragment(log))
-	router.Handle("/film.get", filmsHandler.GetWithSort(log))
+	router.Handle("POST /actor", m.Validate, m.CheckRole, actorsHandler.Create)
+	router.Handle("POST /actor/", m.Validate, m.CheckRole, actorsHandler.Update)
+	router.Handle("DELETE /actor/", m.Validate, m.CheckRole, actorsHandler.Delete)
+	router.Handle("GET /actors", actorsHandler.GetWithFilms)
+
+	router.Handle("POST /film", m.Validate, m.CheckRole, filmsHandler.Add)
+	router.Handle("UPDATE /film/", m.Validate, m.CheckRole, filmsHandler.Update)
+	router.Handle("DELETE /film/", m.Validate, m.CheckRole, filmsHandler.Delete)
+	router.Handle("GET /film.search_by_fragment", filmsHandler.SearchByFragment)
+	router.Handle("GET /film.get", filmsHandler.GetWithSort)
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
