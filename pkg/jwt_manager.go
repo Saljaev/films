@@ -1,4 +1,4 @@
-package userhandler
+package pkg
 
 import (
 	"fmt"
@@ -22,10 +22,10 @@ func NewJWTManager(secret string, tokenDuration time.Duration) *JWTManager {
 	return &JWTManager{secret: secret, tokenDuration: tokenDuration}
 }
 
-func (m *JWTManager) Generate(user models.User) (string, error) {
+func (m *JWTManager) Generate(user models.User, tokenTTL time.Duration) (string, error) {
 	claims := UseClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(m.tokenDuration)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenTTL)),
 		},
 		Login: user.Login,
 		Id:    user.Id,
