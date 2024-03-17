@@ -2,11 +2,9 @@ package filmshandler
 
 import (
 	"context"
-	"log/slog"
 	"net/http"
 	"strconv"
 	"tiny/internal/api/utilapi"
-	"tiny/internal/logger/sl"
 )
 
 type FilmDeleteResponse struct {
@@ -18,25 +16,25 @@ func (h *FilmsHandler) Delete(ctx *utilapi.APIContext) {
 
 	filmID, err := strconv.Atoi(rawFilmID)
 	if err != nil || filmID <= 0 {
-		ctx.Error("invalid film id from url param", sl.Err(err))
+		ctx.Error("invalid film id from url param", err)
 		ctx.WriteFailure(http.StatusBadRequest, "invalid film id")
 		return
 	}
 
 	film, err := h.films.GetById(context.Background(), filmID)
 	if err != nil {
-		ctx.Error("failed to delete film by id", sl.Err(err), slog.Any("film_id", filmID))
+		ctx.Error("failed to delete film by id", err)
 		ctx.WriteFailure(http.StatusBadRequest, "invalid film id")
 		return
 	}
 
 	err = h.films.Delete(context.Background(), film.Id)
 	if err != nil {
-		ctx.Error("failed to delete film", sl.Err(err))
+		ctx.Error("failed to delete film", err)
 		ctx.WriteFailure(http.StatusInternalServerError, "server error")
 		return
 	}
 
-	ctx.Info("film deleted", slog.Any("film_id", filmID))
+	ctx.Info("film deleted", "film_id", filmID)
 	ctx.SuccessWithData(FilmDeleteResponse{FilmID: filmID})
 }
