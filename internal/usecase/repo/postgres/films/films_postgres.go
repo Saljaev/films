@@ -78,6 +78,25 @@ func (fr *FilmsRepo) Add(ctx context.Context, f entities.Films) (int, error) {
 	return filmId, nil
 }
 
+func (fr *FilmsRepo) GetById(ctx context.Context, id int) (*entities.Films, error) {
+	const op = "FilmsRepo - Add"
+
+	film := entities.Films{}
+
+	query := "DELETE FROM films WHERE id = $1"
+
+	row := fr.QueryRowContext(ctx, query, id)
+	err := row.Scan(&film.Id, &film.Name, &film.Description, &film.Rating, &film.ReleaseDate)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, os.ErrNotExist
+	} else if err != nil {
+		return nil, fmt.Errorf("%s - fr.QueryRowContext: %w", op, err)
+	}
+
+	return &film, nil
+
+}
+
 func (fr *FilmsRepo) Update(ctx context.Context, f entities.Films) error {
 	const op = "FilmsRepo - Update"
 
@@ -99,6 +118,7 @@ func (fr *FilmsRepo) Update(ctx context.Context, f entities.Films) error {
 		return fmt.Errorf("%s - res.RowsAffected: %w", op, err)
 	}
 
+	// TODO: maybe change error
 	if rowsAffected == 0 {
 		return fmt.Errorf(errors.New("no data updating").Error())
 	}
@@ -226,7 +246,7 @@ func (fr *FilmsRepo) SearchByActorName(ctx context.Context, firstName, lastName 
 		"LEFT JOIN actors_from_films actorsfilm ON actorsfilm.films_id=films.id " +
 		"LEFT JOIN actors ON actors.id = actorsfilm.actors_id " +
 		"WHERE actors.first_name ILIKE '%' || $1 || '%' OR actors.last_name ILIKE '%' || $2 || '%' " +
-		"GROUP BY films.id, actors.id;"
+		"ORDER BY films.id, actors.id;"
 
 	rows, err := fr.Query(query, firstName, lastName)
 	if err != nil {

@@ -25,7 +25,7 @@ func (h *FilmsHandler) Delete(ctx *utilapi.APIContext) {
 
 	film, err := h.films.GetById(context.Background(), filmID)
 	if err != nil {
-		ctx.Error("failed to delete film by id", sl.Err(err), slog.Any("user_id", filmID))
+		ctx.Error("failed to delete film by id", sl.Err(err), slog.Any("film_id", filmID))
 		ctx.WriteFailure(http.StatusBadRequest, "invalid film id")
 		return
 	}

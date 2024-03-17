@@ -13,11 +13,11 @@ import (
 )
 
 type FilmsUpdateRequest struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Rating      float64  `json:"rating"`
-	ReleaseDate string   `json:"release_date"`
-	Actors      []*Actor `json:"actors"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Rating      float64   `json:"rating"`
+	ReleaseDate string    `json:"release_date"`
+	Actors      []*Actors `json:"actors"`
 }
 
 type FilmsUpdateResponse struct {
@@ -38,6 +38,7 @@ func (req *FilmsUpdateRequest) IsValid() bool {
 	if req.Rating != 0 && req.Rating < 0 || req.Rating > 10 {
 		return false
 	}
+	// TODO: add validate time
 	if req.ReleaseDate != "" {
 		date, err := time.Parse(time.DateOnly, req.ReleaseDate)
 		if err != nil || date.Year() <= 1700 {
@@ -48,7 +49,7 @@ func (req *FilmsUpdateRequest) IsValid() bool {
 	return true
 }
 
-func (h *FilmsHandler) Upadate(ctx *utilapi.APIContext) {
+func (h *FilmsHandler) Update(ctx *utilapi.APIContext) {
 	var req FilmsUpdateRequest
 	ctx.Decode(&req)
 
@@ -61,7 +62,7 @@ func (h *FilmsHandler) Upadate(ctx *utilapi.APIContext) {
 		return
 	}
 
-	var actors []*models.Actor
+	var actors []*models.Actors
 
 	for i := range req.Actors {
 		if !req.Actors[i].IsValid() {
@@ -72,7 +73,7 @@ func (h *FilmsHandler) Upadate(ctx *utilapi.APIContext) {
 
 		date, _ := time.Parse(time.DateOnly, req.Actors[i].DateOfBirth)
 
-		actor := models.Actor{
+		actor := models.Actors{
 			FirstName:   req.Actors[i].FirstName,
 			LastName:    req.Actors[i].LastName,
 			Gender:      req.Actors[i].Gender,
@@ -87,6 +88,7 @@ func (h *FilmsHandler) Upadate(ctx *utilapi.APIContext) {
 	date, _ := time.Parse(time.DateOnly, req.ReleaseDate)
 
 	film := models.Films{
+		Id:          filmID,
 		Name:        req.Name,
 		Description: req.Description,
 		Rating:      req.Rating,
@@ -197,7 +199,7 @@ func (h *FilmsHandler) Upadate(ctx *utilapi.APIContext) {
 //
 //		//TODO: delete actor from film
 //
-//		var actors []*models.Actor
+//		var actors []*models.Actors
 //
 //		if req.Actors != nil {
 //			for i := range req.Actors {
@@ -221,7 +223,7 @@ func (h *FilmsHandler) Upadate(ctx *utilapi.APIContext) {
 //					return
 //				}
 //
-//				actor := models.Actor{
+//				actor := models.Actors{
 //					FirstName:   req.Actors[i].FirstName,
 //					LastName:    req.Actors[i].LastName,
 //					Gender:      req.Actors[i].Gender,

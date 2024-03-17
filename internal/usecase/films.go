@@ -2,7 +2,10 @@ package usecase
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+	"os"
 	"tiny/internal/entities"
 	"tiny/internal/models"
 )
@@ -44,6 +47,38 @@ func (fs *FilmsUseCase) Add(ctx context.Context, f models.Films) (int, error) {
 	}
 
 	return id, nil
+}
+
+func (fs *FilmsUseCase) GetById(ctx context.Context, id int) (*models.Films, error) {
+	const op = "FilmsUseCase - Add"
+
+	films, err := fs.repo.GetById(ctx, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, os.ErrNotExist
+	} else if err != nil {
+		return nil, fmt.Errorf("%s - fr.repo.GetById: %w", op, err)
+	}
+
+	actors := []*models.Actors{}
+	for i := range films.Actors {
+		actors = append(actors, &models.Actors{
+			FirstName:   films.Actors[i].FirstName,
+			LastName:    films.Actors[i].LastName,
+			Gender:      films.Actors[i].Gender,
+			DateOfBirth: films.Actors[i].DateOfBirth,
+		})
+	}
+
+	newFilm := models.Films{
+		Id:          films.Id,
+		Name:        films.Name,
+		Description: films.Description,
+		Rating:      films.Rating,
+		ReleaseDate: films.ReleaseDate,
+		Actors:      actors,
+	}
+
+	return &newFilm, nil
 }
 
 func (fs *FilmsUseCase) Update(ctx context.Context, f models.Films) error {
@@ -110,7 +145,7 @@ func (fs *FilmsUseCase) SearchByFilmName(ctx context.Context, name string) ([]*m
 			ReleaseDate: films[i].ReleaseDate,
 		}
 
-		actor := models.Actor{
+		actor := models.Actors{
 			Id:          films[i].Actors[0].Id,
 			FirstName:   films[i].Actors[0].FirstName,
 			LastName:    films[i].Actors[0].LastName,
@@ -145,7 +180,7 @@ func (fs *FilmsUseCase) SearchByActorName(ctx context.Context, firstName, lastNa
 			ReleaseDate: films[i].ReleaseDate,
 		}
 
-		actor := models.Actor{
+		actor := models.Actors{
 			Id:          films[i].Actors[0].Id,
 			FirstName:   films[i].Actors[0].FirstName,
 			LastName:    films[i].Actors[0].LastName,
@@ -161,19 +196,8 @@ func (fs *FilmsUseCase) SearchByActorName(ctx context.Context, firstName, lastNa
 	return res, nil
 }
 
-func (fs *FilmsUseCase) RateByField(ctx context.Context, fragment string, increasing bool) ([]*models.Films, error) {
+func (fs *FilmsUseCase) RateByField(ctx context.Context, field string, increasing bool) ([]*models.Films, error) {
 	const op = "FilmsUseCase - RateByField"
-
-	fields := map[string]string{
-		"name":           "name",
-		"rating":         "rating",
-		"releasing_date": "release_date",
-	}
-
-	field, ok := fields[fragment]
-	if !ok {
-		field = "rating"
-	}
 
 	var order string
 

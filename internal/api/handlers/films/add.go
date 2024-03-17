@@ -12,25 +12,18 @@ import (
 )
 
 type FilmsAddRequest struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Rating      float64  `json:"rating"`
-	ReleaseDate string   `json:"release_date"`
-	Actors      []*Actor `json:"actors"`
-}
-
-type Actor struct {
-	FirstName   string `json:"first_name"`
-	LastName    string `json:"second_name"`
-	DateOfBirth string `json:"date_of_birth"`
-	Gender      string `json:"gender"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Rating      float64   `json:"rating"`
+	ReleaseDate string    `json:"release_date"`
+	Actors      []*Actors `json:"actors"`
 }
 
 type FilmAddResponse struct {
 	FilmId int `json:"film_id"`
 }
 
-func (a *Actor) IsValid() bool {
+func (a *Actors) IsValid() bool {
 	validGenders := map[string]struct{}{
 		"male":   {},
 		"female": {},
@@ -53,19 +46,18 @@ func (f *FilmsHandler) Add(ctx *utilapi.APIContext) {
 	var req FilmsAddRequest
 	ctx.Decode(&req)
 
-	var actors []*models.Actor
+	var actors []*models.Actors
 
 	for i := range req.Actors {
 		if !req.Actors[i].IsValid() {
 			ctx.Error("failed to decode body")
-
 			ctx.WriteFailure(http.StatusBadRequest, "server error")
 			return
 		}
 
 		date, _ := time.Parse(time.DateOnly, req.Actors[i].DateOfBirth)
 
-		actor := models.Actor{
+		actor := models.Actors{
 			FirstName:   req.Actors[i].FirstName,
 			LastName:    req.Actors[i].LastName,
 			Gender:      req.Actors[i].Gender,
@@ -160,7 +152,7 @@ func (f *FilmsHandler) Add(ctx *utilapi.APIContext) {
 //			return
 //		}
 //
-//		var actors []*models.Actor
+//		var actors []*models.Actors
 //
 //		for i := range req.Actors {
 //			time, err := time.Parse(time.DateOnly, req.Actors[i].DateOfBirth)
@@ -183,7 +175,7 @@ func (f *FilmsHandler) Add(ctx *utilapi.APIContext) {
 //				return
 //			}
 //
-//			actor := models.Actor{
+//			actor := models.Actors{
 //				FirstName:   req.Actors[i].FirstName,
 //				LastName:    req.Actors[i].LastName,
 //				Gender:      req.Actors[i].Gender,
