@@ -2,10 +2,8 @@ package userhandler
 
 import (
 	"context"
-	"log/slog"
 	"net/http"
 	"tiny/internal/api/utilapi"
-	"tiny/internal/logger/sl"
 	"tiny/internal/models"
 	"unicode/utf8"
 )
@@ -25,7 +23,10 @@ type UserRegisterResponse struct {
 
 func (h *UserHandler) Register(ctx *utilapi.APIContext) {
 	var req UserRegisterRequest
-	ctx.Decode(&req)
+	err := ctx.Decode(&req)
+	if err != nil {
+		return
+	}
 
 	user := models.User{
 		Login:    req.Login,
@@ -34,13 +35,13 @@ func (h *UserHandler) Register(ctx *utilapi.APIContext) {
 
 	id, err := h.users.Register(context.Background(), user)
 	if err != nil {
-		ctx.Error("failed to create user", sl.Err(err))
+		ctx.Error("failed to create user", err)
 
 		ctx.WriteFailure(http.StatusInternalServerError, "server error")
 		return
 	}
 
-	ctx.Info("user add", slog.Any("id", id))
+	ctx.Info("user add", "id", id)
 
 	ctx.SuccessWithData(UserRegisterResponse{UserID: id})
 }

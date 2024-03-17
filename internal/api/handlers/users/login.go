@@ -4,11 +4,9 @@ import (
 	"context"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
-	"log/slog"
 	"net/http"
 	"os"
 	"tiny/internal/api/utilapi"
-	"tiny/internal/logger/sl"
 	"unicode/utf8"
 )
 
@@ -27,11 +25,14 @@ func (req *UserLoginRequest) IsValid() bool {
 
 func (h *UserHandler) Login(ctx *utilapi.APIContext) {
 	var req UserLoginRequest
-	ctx.Decode(&req)
+	err := ctx.Decode(&req)
+	if err != nil {
+		return
+	}
 
 	user, err := h.users.GetByLogin(context.Background(), req.Login)
 	if err != nil {
-		ctx.Error("failed to get user by login", sl.Err(err))
+		ctx.Error("failed to get user by login", err)
 
 		ctx.WriteFailure(http.StatusInternalServerError, "server error")
 		return
@@ -39,23 +40,23 @@ func (h *UserHandler) Login(ctx *utilapi.APIContext) {
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		ctx.Error("failed to compare password", sl.Err(err))
+		ctx.Error("failed to compare password", err)
 
 		ctx.WriteFailure(http.StatusBadRequest, "invalid login or password")
 		return
 	}
 
-	accessToken, err := h.jwt.Generate(*user)
+	accessToken, err := h.jwt.Generate(*user, h.tokenTTL)
 	if err != nil {
-		ctx.Error("failed to generate access token", sl.Err(err))
+		ctx.Error("failed to generate access token", err)
 
 		ctx.WriteFailure(http.StatusInternalServerError, "server error")
 		return
 	}
 
-	refreshToken, err := h.jwt.Generate(*user)
+	refreshToken, err := h.jwt.Generate(*user, h.sessionTTL)
 	if err != nil {
-		ctx.Error("failed to generate refresh token", sl.Err(err))
+		ctx.Error("failed to generate refresh token", err)
 
 		ctx.WriteFailure(http.StatusInternalServerError, "server error")
 		return
@@ -66,29 +67,29 @@ func (h *UserHandler) Login(ctx *utilapi.APIContext) {
 	if errors.Is(err, os.ErrNotExist) {
 		_, err = h.sessions.Add(context.Background(), refreshToken, user.Id, h.sessionTTL)
 		if err != nil {
-			ctx.Error("failed to create session", sl.Err(err))
+			ctx.Error("failed to create session", err)
 
 			ctx.WriteFailure(http.StatusInternalServerError, "server error")
 			return
 		}
 	} else if err != nil {
-		ctx.Error("failed to get session", sl.Err(err))
+		ctx.Error("failed to get session", err)
 
 		ctx.WriteFailure(http.StatusInternalServerError, "server error")
 		return
 	} else {
 		err = h.sessions.Update(context.Background(), refreshToken, sessionCheck.Id, h.sessionTTL)
 		if err != nil {
-			ctx.Error("failed to update session", sl.Err(err))
+			ctx.Error("failed to update session", err)
 
 			ctx.WriteFailure(http.StatusInternalServerError, "server error")
 			return
 		}
 	}
 
-	ctx.SetTokensCookie(accessToken, refreshToken)
+	ctx.SetTokensCookie(accessToken, refreshToken, h.tokenTTL, h.sessionTTL)
 
-	ctx.Info("login successful", slog.Any("id", user.Id))
+	ctx.Info("login successful", "id", user.Id)
 
 	ctx.SuccessWithData(UserLoginResponse{UserID: user.Id})
 
