@@ -1,66 +1,40 @@
 package actorshandler
 
 import (
-	"errors"
-	"log/slog"
+	"context"
 	"net/http"
-	"os"
 	"strconv"
-	"tiny/internal/logger/sl"
+	"tiny/internal/api/utilapi"
 )
 
-func (h *ActorsHandler) Delete(log *slog.Logger) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "ActorsHandler - Delete"
+type ActorDeletResponse struct {
+	ActorID int `json:"actor_id"`
+}
 
-		log := log.With(
-			slog.String("op", op),
-		)
+func (h *ActorsHandler) Delete(ctx *utilapi.APIContext) {
+	rawActorID := ctx.GetURLParam("id")
 
-		urlID := r.URL.Query().Get("id")
-		if urlID == "" {
-			log.Error("failed to parse id from url")
-
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("invalid url"))
-
-			return
-		}
-
-		id, err := strconv.Atoi(urlID)
-		if err != nil {
-			log.Error("invalid id value")
-
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("invalid id"))
-
-			return
-		}
-
-		log.Info("request decoded", slog.Any("id", id))
-
-		err = h.actors.Delete(r.Context(), id)
-		if errors.Is(err, os.ErrNotExist) {
-			log.Error("no such actor with this id", slog.Any("id", id))
-
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("no actor with given id"))
-
-			return
-		}
-
-		if err != nil {
-			log.Error("failed to delete actor", sl.Err(err))
-
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("internal error"))
-
-			return
-		}
-
-		log.Info("delete successful")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("delete successful"))
-
+	actorID, err := strconv.Atoi(rawActorID)
+	if err != nil || actorID <= 0 {
+		ctx.Error("invalid actor id from url param", err)
+		ctx.WriteFailure(http.StatusBadRequest, "invalid actor id")
+		return
 	}
+
+	actor, err := h.actors.GetById(context.Background(), actorID)
+	if err != nil {
+		ctx.Error("failed to delete actor by id", err)
+		ctx.WriteFailure(http.StatusBadRequest, "invalid actor id")
+		return
+	}
+
+	err = h.actors.Delete(context.Background(), actor.Id)
+	if err != nil {
+		ctx.Error("failed to delete actor", err)
+		ctx.WriteFailure(http.StatusInternalServerError, "server error")
+		return
+	}
+
+	ctx.Info("actor delete", "actor_id", actorID)
+	ctx.SuccessWithData(ActorDeletResponse{ActorID: actorID})
 }

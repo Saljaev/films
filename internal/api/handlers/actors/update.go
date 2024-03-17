@@ -1,86 +1,71 @@
 package actorshandler
 
 import (
-	"encoding/json"
-	"log/slog"
+	"context"
 	"net/http"
+	"strconv"
 	"time"
-	"tiny/internal/api/request"
-	"tiny/internal/logger/sl"
+	"tiny/internal/api/utilapi"
 	"tiny/internal/models"
 )
 
-func (h *ActorsHandler) Update(log *slog.Logger) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "ActorsHandler - Update"
+type ActorsUpdateRequest struct {
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"second_name"`
+	DateOfBirth string `json:"date_of_birth"`
+	Gender      string `json:"gender"`
+}
 
-		log := log.With(
-			slog.String("op", op),
-		)
+type ActorsUpdateResponse struct {
+	ActorID int `json:"actor_id"`
+}
 
-		var req request.Actor
-
-		err := json.NewDecoder(r.Body).Decode(&req)
-
-		if err != nil {
-			log.Error("failed to decode body", sl.Err(err))
-
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("invalid request"))
-
-			return
-		}
-
-		if req.FirstName == "" && req.LastName == "" && req.Gender == "" && req.DateOfBirth == "" {
-			log.Error("empty body")
-
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("enter at least one field to update"))
-
-			return
-		}
-
-		if !validateGender(req.Gender) {
-			log.Error("invalid actor's gender", slog.Any("gender", req.Gender))
-
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("enter actor's gender from the available one: [male/female/other]"))
-
-			return
-		}
-
-		date, err := time.Parse(time.DateOnly, req.DateOfBirth)
-		if err != nil {
-			log.Error("invalid date format", slog.Any("date", req.DateOfBirth))
-
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("enter actor's date of birth in format YYYY-MM-DD"))
-
-			return
-		}
-
-		log.Info("request decoded", slog.Any("request", req))
-
-		actor := models.Actor{
-			FirstName:   req.FirstName,
-			LastName:    req.LastName,
-			Gender:      req.Gender,
-			DateOfBirth: date,
-		}
-
-		err = h.actors.Update(r.Context(), actor)
-		if err != nil {
-			log.Error("failed to update actor", sl.Err(err))
-
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("failed to update actor"))
-
-			return
-		}
-
-		log.Info("successful update")
-
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("user updated"))
+func (req *ActorsUpdateRequest) IsValid() bool {
+	if req.FirstName == "" && req.LastName == "" &&
+		req.Gender == "" && req.DateOfBirth == "" {
+		return false
 	}
+	if req.Gender != "" && !ValidateGender(req.Gender) {
+		return false
+	}
+	return ValidateDate(req.DateOfBirth)
+}
+
+func (h *ActorsHandler) Update(ctx *utilapi.APIContext) {
+	var req ActorsUpdateRequest
+	err := ctx.Decode(&req)
+	if err != nil {
+		return
+	}
+
+	rawActorID := ctx.GetURLParam("id")
+
+	actorID, err := strconv.Atoi(rawActorID)
+	if err != nil || actorID <= 0 {
+		ctx.Error("invalid actor id from url param", err)
+		ctx.WriteFailure(http.StatusBadRequest, "invalid actor id")
+		return
+	}
+
+	date, _ := time.Parse(time.DateOnly, req.DateOfBirth)
+
+	ctx.Info("request decoded", "request", req)
+
+	actor := models.Actors{
+		Id:          actorID,
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		Gender:      req.Gender,
+		DateOfBirth: date,
+	}
+
+	err = h.actors.Update(context.Background(), actor)
+	if err != nil {
+		ctx.Error("failed to update actor", err)
+		ctx.WriteFailure(http.StatusInternalServerError, "failed to update actor")
+		return
+	}
+
+	ctx.Info("actor update", "id", actorID)
+	ctx.SuccessWithData(ActorsUpdateResponse{ActorID: actorID})
 }
