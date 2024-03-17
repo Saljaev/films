@@ -50,7 +50,7 @@ func (f *FilmsHandler) SearchByFragment(log *slog.Logger) http.HandlerFunc {
 			if err != nil {
 				log.Error("failed to search film by film name", sl.Err(err))
 
-				w.WriteHeader(http.StatusBadRequest)
+				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("internal error"))
 
 				return

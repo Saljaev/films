@@ -1,4 +1,4 @@
-package filmshandler
+package actorshandler
 
 import (
 	"errors"
@@ -6,18 +6,19 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"tiny/internal/logger/sl"
 )
 
-func (f *FilmsHandler) Delete(log *slog.Logger) http.HandlerFunc {
+func (h *ActorsHandler) Delete(log *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "FilmsHandler - Delete"
+		const op = "ActorsHandler - Delete"
 
 		log := log.With(
 			slog.String("op", op),
 		)
 
-		urlId := r.URL.Query().Get("id")
-		if urlId == "" {
+		urlID := r.URL.Query().Get("id")
+		if urlID == "" {
 			log.Error("failed to parse id from url")
 
 			w.WriteHeader(http.StatusBadRequest)
@@ -26,7 +27,7 @@ func (f *FilmsHandler) Delete(log *slog.Logger) http.HandlerFunc {
 			return
 		}
 
-		id, err := strconv.Atoi(urlId)
+		id, err := strconv.Atoi(urlID)
 		if err != nil {
 			log.Error("invalid id value")
 
@@ -38,28 +39,28 @@ func (f *FilmsHandler) Delete(log *slog.Logger) http.HandlerFunc {
 
 		log.Info("request decoded", slog.Any("id", id))
 
-		err = f.films.Delete(r.Context(), id)
+		err = h.actors.Delete(r.Context(), id)
 		if errors.Is(err, os.ErrNotExist) {
-			log.Error("no such film with tihs id", slog.Any("id", id))
+			log.Error("no such actor with this id", slog.Any("id", id))
 
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("no film with given id"))
+			w.Write([]byte("no actor with given id"))
 
 			return
 		}
 
 		if err != nil {
-			log.Error("failed to delete film")
+			log.Error("failed to delete actor", sl.Err(err))
 
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("failed to delete film"))
+			w.Write([]byte("internal error"))
 
 			return
 		}
 
-		log.Info("successful delete")
-
+		log.Info("delete successful")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("successful delete"))
+		w.Write([]byte("delete successful"))
+
 	}
 }

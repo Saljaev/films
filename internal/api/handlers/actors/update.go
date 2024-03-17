@@ -2,8 +2,6 @@ package actorshandler
 
 import (
 	"encoding/json"
-	"errors"
-	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -24,19 +22,29 @@ func (h *ActorsHandler) Update(log *slog.Logger) http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&req)
 
-		if errors.Is(err, io.EOF) {
-			log.Error("request body empty", sl.Err(err))
-
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("request body empty"))
-
-			return
-		}
 		if err != nil {
 			log.Error("failed to decode body", sl.Err(err))
 
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("invalid request"))
+
+			return
+		}
+
+		if req.FirstName == "" && req.LastName == "" && req.Gender == "" && req.DateOfBirth == "" {
+			log.Error("empty body")
+
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("enter at least one field to update"))
+
+			return
+		}
+
+		if !validateGender(req.Gender) {
+			log.Error("invalid actor's gender", slog.Any("gender", req.Gender))
+
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("enter actor's gender from the available one: [male/female/other]"))
 
 			return
 		}
@@ -50,6 +58,8 @@ func (h *ActorsHandler) Update(log *slog.Logger) http.HandlerFunc {
 
 			return
 		}
+
+		log.Info("request decoded", slog.Any("request", req))
 
 		actor := models.Actor{
 			FirstName:   req.FirstName,
@@ -68,9 +78,9 @@ func (h *ActorsHandler) Update(log *slog.Logger) http.HandlerFunc {
 			return
 		}
 
-		log.Info("actor add")
+		log.Info("successful update")
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("actor add"))
+		w.Write([]byte("user updated"))
 	}
 }
