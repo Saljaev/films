@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"reflect"
-	"runtime"
 )
 
 type Router struct {
@@ -29,6 +27,8 @@ func (router *Router) Handle(pattern string, handlerFuncs ...HandlerFunc) {
 		ctx.w = w
 		ctx.r = r
 
+		ctx.w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
 		for _, h := range handlerFuncs {
 			if !ctx.writeResponse {
 				ctx.log = slog.With(slog.String("op", fmt.Sprintf("%s", pattern)))
@@ -40,8 +40,4 @@ func (router *Router) Handle(pattern string, handlerFuncs ...HandlerFunc) {
 
 func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	router.mux.ServeHTTP(w, r)
-}
-
-func getFuncName(fn interface{}) string {
-	return runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name()
 }
