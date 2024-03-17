@@ -86,9 +86,11 @@ func (ac *ActorsUseCase) Delete(ctx context.Context, id int) error {
 }
 
 func (ac *ActorsUseCase) GetAll(ctx context.Context) ([]*models.Actors, error) {
+	const op = "ActorsUseCase - GetAll"
+
 	actors, err := ac.repo.GetAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%s 0 ac.repo.GetAll: %w", err)
+		return nil, fmt.Errorf("%s 0 ac.repo.GetAll: %w", op, err)
 	}
 
 	var res []*models.Actors
