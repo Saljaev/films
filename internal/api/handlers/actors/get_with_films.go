@@ -26,6 +26,7 @@ func GenerateResponse(actors []*models.Actors) []*ActorsAndFilmsResponse {
 	var res []*ActorsAndFilmsResponse
 
 	for i := range actors {
+
 		film := Films{
 			Name:        actors[i].Films[0].Name,
 			Description: actors[i].Films[0].Description,
@@ -40,7 +41,12 @@ func GenerateResponse(actors []*models.Actors) []*ActorsAndFilmsResponse {
 			Gender:      actors[i].Gender,
 			Films:       []*Films{&film},
 		}
-		if i > 0 {
+
+		if film.Name == "" {
+			actor.Films = actor.Films[:len(actor.Films)-1]
+		}
+
+		if len(res) > 0 {
 			if res[len(res)-1].FirstName == actor.FirstName && res[len(res)-1].LastName == actor.LastName &&
 				res[len(res)-1].Gender == actor.Gender && res[len(res)-1].DateOfBirth == actor.DateOfBirth {
 				res[len(res)-1].Films = append(res[len(res)-1].Films, &film)
@@ -48,7 +54,9 @@ func GenerateResponse(actors []*models.Actors) []*ActorsAndFilmsResponse {
 				res = append(res, &actor)
 			}
 		} else {
+
 			res = append(res, &actor)
+
 		}
 
 	}
