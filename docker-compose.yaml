@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - db-network
+    environment:
+      - DB_PASSWORD=secret
+      - CONFIG_PATH=./config/config.yaml
+      - DB_URL=postgres://db/kosloeb
+    env_file:
+        - .env
+
+  db:
+    image: postgres:16.2-alpine3.19
+    restart: always
+    container_name: db-postgres
+    networks:
+      - db-network
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - films:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  db-migrations:
+    image: migrate/migrate
+    depends_on:
+      - db
+    container_name: db-migrations
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB: ${DB}
+    networks:
+      - db-network
+    volumes:
+      - ./internal/migrations:/migrations
+    command: -path=/migrations -database postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@db:5432/$DB?sslmode=disable up
+
+volumes:
+  films:
+networks:
+  db-network:
