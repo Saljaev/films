@@ -2,63 +2,83 @@ package utilapi
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"time"
-	userhandler "tiny/internal/api/handlers/users"
 	"tiny/internal/api/response"
 	"tiny/internal/logger/sl"
-	"tiny/internal/usecase"
 )
 
+//type APIContext struct {
+//	w          http.ResponseWriter
+//	r          *http.Request
+//	users      usecase.Users
+//	sessions   usecase.Sessions
+//	jwt        *userhandler.JWTManager
+//	log        *slog.Logger
+//	tokenTTL   time.Duration
+//	sessionTTL time.Duration
+//	next       HandlerFunc
+//}
+
 type APIContext struct {
-	w          http.ResponseWriter
-	r          *http.Request
-	users      usecase.Users
-	sessions   usecase.Sessions
-	jwt        *userhandler.JWTManager
-	log        *slog.Logger
-	tokenTTL   time.Duration
-	sessionTTL time.Duration
-	next       HandlerFunc
+	w             http.ResponseWriter
+	r             *http.Request
+	log           *slog.Logger
+	next          HandlerFunc
+	writeResponse bool
 }
 
 func NewAPIContext(
-	users usecase.Users,
-	sessions usecase.Sessions,
-	jwt *userhandler.JWTManager,
 	log *slog.Logger,
-	tokenTTL time.Duration,
-	sessionTTL time.Duration,
 ) *APIContext {
 	return &APIContext{
-		users:      users,
-		sessions:   sessions,
-		jwt:        jwt,
-		log:        log,
-		tokenTTL:   tokenTTL,
-		sessionTTL: sessionTTL,
+		log:           log,
+		writeResponse: false,
 	}
 }
 
-func (ctx *APIContext) Error(msg string, args ...interface{}) {
-	ctx.log.Error(msg, args)
+func (ctx *APIContext) Error(msg string, err error) {
+	ctx.log.Error(msg, sl.Err(err))
 }
 
-func (ctx *APIContext) Info(msg string, args ...interface{}) {
-	ctx.log.Info(msg, args)
+func (ctx *APIContext) Info(msg string, key string, value interface{}) {
+	ctx.log.Info(msg, slog.Any(key, value))
 }
 
 type validator interface {
 	IsValid() bool
 }
 
-func (ctx *APIContext) Decode(dest validator) {
+//func (ctx *APIContext) Decode(dest validator) error {
+//	err := json.NewDecoder(ctx.r.Body).Decode(&dest)
+//	if err != nil || !dest.IsValid() {
+//		if err == nil {
+//			err = errors.New("invalid request")
+//		}
+//		ctx.Error("error", err)
+//		ctx.WriteFailure(http.StatusBadRequest, "invalid request")
+//
+//		return err
+//	}
+//
+//	return nil
+//}
+
+func (ctx *APIContext) Decode(dest validator) error {
 	err := json.NewDecoder(ctx.r.Body).Decode(&dest)
 	if err != nil || !dest.IsValid() {
-		ctx.Error("error", sl.Err(err))
+		if err == nil {
+			err = errors.New("invalid request")
+		}
+		ctx.Error("error", err)
 		ctx.WriteFailure(http.StatusBadRequest, "invalid request")
+
+		return err
 	}
+
+	return nil
 }
 
 func (ctx *APIContext) WriteFailure(code int, msg string) {
@@ -68,9 +88,9 @@ func (ctx *APIContext) WriteFailure(code int, msg string) {
 
 	_, err := ctx.w.Write(data)
 	if err != nil {
-		ctx.Error("response error", sl.Err(err))
+		ctx.Error("response error", err)
 	}
-
+	ctx.writeResponse = true
 	ctx.r.Context().Done()
 }
 
@@ -81,11 +101,11 @@ func (ctx *APIContext) SuccessWithData(data interface{}) {
 	_, _ = ctx.w.Write(jsonData)
 }
 
-func (ctx *APIContext) SetTokensCookie(accessToken, refreshToken string) {
+func (ctx *APIContext) SetTokensCookie(accessToken, refreshToken string, tokenTTL, sessionTTL time.Duration) {
 	http.SetCookie(ctx.w, &http.Cookie{
 		Name:     "Token",
 		Value:    accessToken,
-		Expires:  time.Now().Add(ctx.tokenTTL),
+		Expires:  time.Now().Add(tokenTTL),
 		HttpOnly: true,
 		Path:     "/",
 	})
@@ -93,7 +113,7 @@ func (ctx *APIContext) SetTokensCookie(accessToken, refreshToken string) {
 	http.SetCookie(ctx.w, &http.Cookie{
 		Name:     "RefreshToken",
 		Value:    refreshToken,
-		Expires:  time.Now().Add(ctx.sessionTTL),
+		Expires:  time.Now().Add(sessionTTL),
 		HttpOnly: true,
 		Path:     "/",
 	})
@@ -110,4 +130,8 @@ func (ctx *APIContext) GetCookieString(name string) string {
 	}
 
 	return cookie.Value
+}
+
+func (ctx *APIContext) ContextDone() {
+	ctx.r.Context().Done()
 }
