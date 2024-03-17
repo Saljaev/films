@@ -1,0 +1,590 @@
+openapi: 3.0.0
+info:
+  title: Фильмотека OpenAPI спецификация
+  version: "1.0.0"
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/r.cf2003_yandex.ru/filmoteka/1.0.0
+  - url: https://localhost:8080/saljaev/filmoteka/v1
+    description: Local server
+tags:
+  - name: admins
+    description: Операции доступные админам
+  - name: users
+    description: Операции доступные пользователям
+  - name: User
+    description: Операции с пользователями
+  - name: Actor
+    description: Операции с актерами
+  - name: Film
+    description: Операции с фильмами
+
+
+paths:
+  /user/register:
+    post:
+      summary: Регистирование пользователя
+      tags:
+        - User
+        - users
+      requestBody:
+        required: true
+        content:
+          aplication/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        '200':
+          description: Успешная регистрация
+          content:
+            aplication/json:
+              schema:
+                $ref: "#/components/schemas/UserID"
+        '500':
+          description: Ошибка со стороны сервера
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: server error
+
+  /user/login:
+    post:
+      summary: Аутентификация и идентификация пользователя
+      tags:
+        - User
+        - users
+        - admins
+      requestBody:
+        required: true
+        content:
+          aplication/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        '200':
+          description: Пользователь аутентифицирован
+          content:
+            aplication/json:
+              schema:
+                $ref: "#/components/schemas/UserID"
+        '400':
+          description: Неправильный логин или пароль
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: invalid login or password
+        '500':
+          description: Ошибка со стороны сервера
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: server error
+
+  /user/{id}:
+    delete:
+      summary: Удаление пользователя
+      tags:
+        - User
+        - admins
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID пользователя
+          schema:
+            type: string
+            example: 111
+      responses:
+        '200':
+          description: Пользователь удалён
+          content:
+            aplication/json:
+              schema:
+                $ref: "#/components/schemas/UserID"
+        '400':
+          description: Не валидный ID пользователя
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: invalid user id
+        '403':
+          description: Недостаточно прав
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: forbidden
+        '500':
+          description: Ошибка со стороны сервера
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: server error
+
+
+
+  /film:
+    post:
+      summary: Добавление фильма и его актеров
+      tags:
+        - Film
+        - admins
+      requestBody:
+        required: true
+        content:
+          aplication/json:
+            schema:
+              $ref: "#/components/schemas/FilmWithActor"
+      responses:
+        '200':
+          description: Успешное добавление
+          content:
+            aplication/json:
+              schema:
+                $ref: "#/components/schemas/FilmID"
+        '400':
+          description: Невалидный запрос
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: server error
+        '403':
+          description: Недостаточно прав
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: forbidden
+        '500':
+          description: Ошибка со стороны сервера
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: server error
+  /film/{id}:
+    post:
+      summary: Обновление информации о фильме
+      tags:
+        - Film
+        - admins
+      requestBody:
+        required: true
+        content:
+          aplication/json:
+            schema:
+              $ref: "#/components/schemas/FilmWithActorToUpdate"
+      responses:
+        '200':
+          description: Успешное обновление
+          content:
+            aplication/json:
+              schema:
+                $ref: "#/components/schemas/FilmID"
+        '400':
+          description: Невалидный запрос
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: server error
+        '403':
+          description: Недостаточно прав
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: forbidden
+        '500':
+          description: Ошибка со стороны сервера
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: server error
+    delete:
+      summary: Удаление фильма
+      tags:
+        - Film
+        - admins
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID фильма
+          schema:
+            type: string
+            example: 11
+      responses:
+        '200':
+          description: Фильм удалён
+          content:
+            aplication/json:
+              schema:
+                $ref: "#/components/schemas/FilmID"
+        '400':
+          description: Не валидный ID фильма
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: invalid film id
+        '403':
+          description: Недостаточно прав
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: forbidden
+        '500':
+          description: Ошибка со стороны сервера
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: server error
+  /film/sort:
+    post:
+      description: По умолчанию поле для сортировки - rating, по убыванию
+      summary: Получение отсортированного списка фильмов
+      tags:
+        - Film
+        - admins
+        - users
+      requestBody:
+        required: false
+        content:
+          aplication/json:
+            schema:
+              $ref: "#/components/schemas/FilmSort"
+      responses:
+        '200':
+          description: Успешное получение
+          content:
+            aplication/json:
+              schema:
+                $ref: "#/components/schemas/Films"
+        '500':
+          description: Ошибка со стороны сервера
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: server error
+
+  /films/search:
+    post:
+      description: Получение списка фильмов по фрагменту фильма или имени актера, при указании обоих фрагметов происходит объединение множеств
+      summary: Поиск фильмов по фрагменту названия фильма/имени актера
+      tags:
+        - Film
+        - admins
+        - users
+      requestBody:
+        required: true
+        content:
+          aplication/json:
+            schema:
+              $ref: "#/components/schemas/FilmSearch"
+      responses:
+        '200':
+          description: Успешный поиск
+          content:
+            aplication/json:
+              schema:
+                $ref: "#/components/schemas/FilmsWithActor"
+        '500':
+          description: Ошибка со стороны сервера
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: server error
+
+
+
+  /inventory:
+    get:
+      tags:
+        - developers
+      summary: searches inventory
+      operationId: searchInventory
+      description: |
+        By passing in the appropriate options, you can search for
+        available inventory in the system
+      parameters:
+        - in: query
+          name: searchString
+          description: pass an optional search string for looking up inventory
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: skip
+          description: number of records to skip for pagination
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 50
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InventoryItem'
+        '400':
+          description: bad input parameter
+    post:
+      tags:
+        - admins
+      summary: adds an inventory item
+      operationId: addInventory
+      description: Adds an item to the system
+      responses:
+        '201':
+          description: item created
+        '400':
+          description: 'invalid input, object invalid'
+        '409':
+          description: an existing item already exists
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryItem'
+        description: Inventory item to add
+components:
+  schemas:
+    UserID:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: integer
+          example: 111
+    User:
+      type: object
+      required:
+        - login
+        - password
+      properties:
+        login:
+          type: string
+          example: test
+        password:
+          type: string
+          example: qwerty1
+
+    Film:
+      type: object
+      required:
+        - name
+        - description
+        - rating
+        - release_date
+      properties:
+        name:
+          type: string
+          example: Titanic
+          minLength: 1
+          maxLength: 150
+        descripion:
+          type: string
+          example: Tragic story
+          maxLength: 1000
+        rating:
+          type: number
+          example: 8.5
+          minimum: 0.1
+          maximum: 10
+        release_date:
+          type: string
+          format: data-time
+          example: '1998-02-20'
+
+    Actor:
+      type: object
+      required:
+        - first_name
+        - last_name
+        - gender
+        - date_of_birth
+      properties:
+        firts_name:
+          type: string
+          example: Leonardo
+        last_name:
+          type: string
+          example: DiCaprio
+        gender:
+          type: string
+          enum:
+            - male
+            - female
+            - other
+          example: male
+        date_of_birth:
+          type: string
+          format: data-time
+          example: '1974-11-11'
+
+    Actors:
+      type: array
+      items:
+        $ref: "#/components/schemas/Actor"
+    FilmWithActorToUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Titanic
+          minLength: 1
+          maxLength: 150
+        description:
+          type: string
+          example: Tragic story
+          maxLength: 1000
+        rating:
+          type: number
+          example: 8.5
+          minimum: 0.1
+          maximum: 10
+        release_date:
+          type: string
+          format: data-time
+          example: '1998-02-20'
+        actors:
+          type: array
+          items:
+            $ref: "#/components/schemas/Actor"
+
+    FilmWithActor:
+      type: object
+      required:
+        - name
+        - description
+        - rating
+        - release_date
+        - actors
+      properties:
+        name:
+          type: string
+          example: Titanic
+          minLength: 1
+          maxLength: 150
+        description:
+          type: string
+          example: Tragic story
+          maxLength: 1000
+        rating:
+          type: number
+          example: 8.5
+          minimum: 0.1
+          maximum: 10
+        release_date:
+          type: string
+          format: data-time
+          example: '1998-02-20'
+        actors:
+          type: array
+          items:
+            $ref: "#/components/schemas/Actor"
+
+    Films:
+      type: array
+      items:
+        $ref: "#/components/schemas/Film"
+
+    FilmsWithActor:
+      type: array
+      items:
+        $ref: "#/components/schemas/FilmWithActor"
+
+    FilmID:
+      type: object
+      required:
+        - film_id
+      properties:
+        film_id:
+          type: integer
+          example: 11
+
+    FilmSort:
+      type: object
+      properties:
+        filed:
+          type: string
+          enum:
+            - name
+            - rating
+            - release_date
+          default: rating
+        increasing:
+          type: boolean
+          default: false
+
+    FilmSearch:
+      type: object
+      properties:
+        name:
+          type: string
+          example: аник
+        actor_name:
+          type: string
+          example: ona ic
+
+    InventoryItem:
+      type: object
+      required:
+        - id
+        - name
+        - manufacturer
+        - releaseDate
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        name:
+          type: string
+          example: Widget Adapter
+        releaseDate:
+          type: string
+          format: date-time
+          example: '2016-08-29T09:12:33.001Z'
+        manufacturer:
+          $ref: '#/components/schemas/Manufacturer'
+    Manufacturer:
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: ACME Corporation
+        homePage:
+          type: string
+          format: url
+          example: 'https://www.acme-corp.com'
+        phone:
+          type: string
+          example: 408-867-5309
+      type: object
