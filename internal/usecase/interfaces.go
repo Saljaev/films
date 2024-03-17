@@ -9,20 +9,23 @@ import (
 
 type (
 	Actors interface {
-		Add(ctx context.Context, a models.Actor) (int, error)
-		Update(ctx context.Context, a models.Actor) error
+		Add(ctx context.Context, a models.Actors) (int, error)
+		GetById(ctx context.Context, id int) (*models.Actors, error)
+		Update(ctx context.Context, a models.Actors) error
 		Delete(ctx context.Context, id int) error
-		GetAll(ctx context.Context) ([]*models.Actor, error)
+		GetAll(ctx context.Context) ([]*models.Actors, error)
 	}
 
 	ActorsRepo interface {
 		Add(ctx context.Context, a entities.Actors) (int, error)
+		GetById(ctx context.Context, id int) (*entities.Actors, error)
 		Update(ctx context.Context, a entities.Actors) error
 		Delete(ctx context.Context, id int) error
 		GetAll(ctx context.Context) ([]*entities.Actors, error)
 	}
 
 	Films interface {
+		GetById(ctx context.Context, id int) (*models.Films, error)
 		Add(ctx context.Context, f models.Films) (int, error)
 		Update(ctx context.Context, f models.Films) error
 		Delete(ctx context.Context, id int) error
@@ -32,6 +35,7 @@ type (
 	}
 
 	FilmsRepo interface {
+		GetById(ctx context.Context, id int) (*entities.Films, error)
 		Add(ctx context.Context, f entities.Films) (int, error)
 		Update(ctx context.Context, f entities.Films) error
 		Delete(ctx context.Context, id int) error
