@@ -4,12 +4,16 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"reflect"
+	"runtime"
 )
 
 type Router struct {
 	mux *http.ServeMux
 	log *slog.Logger
 }
+
+type HandlerFunc func(ctx *APIContext)
 
 func NewRouter(log *slog.Logger) *Router {
 	return &Router{
@@ -36,4 +40,8 @@ func (router *Router) Handle(pattern string, handlerFuncs ...HandlerFunc) {
 
 func (router *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	router.mux.ServeHTTP(w, r)
+}
+
+func getFuncName(fn interface{}) string {
+	return runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name()
 }

@@ -6,21 +6,12 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
-	"tiny/internal/api/response"
 	"tiny/internal/logger/sl"
 )
 
-//type APIContext struct {
-//	w          http.ResponseWriter
-//	r          *http.Request
-//	users      usecase.Users
-//	sessions   usecase.Sessions
-//	jwt        *userhandler.JWTManager
-//	log        *slog.Logger
-//	tokenTTL   time.Duration
-//	sessionTTL time.Duration
-//	next       HandlerFunc
-//}
+type Error struct {
+	ErrorMessage string `json:"error_message"`
+}
 
 type APIContext struct {
 	w             http.ResponseWriter
@@ -51,21 +42,6 @@ type validator interface {
 	IsValid() bool
 }
 
-//func (ctx *APIContext) Decode(dest validator) error {
-//	err := json.NewDecoder(ctx.r.Body).Decode(&dest)
-//	if err != nil || !dest.IsValid() {
-//		if err == nil {
-//			err = errors.New("invalid request")
-//		}
-//		ctx.Error("error", err)
-//		ctx.WriteFailure(http.StatusBadRequest, "invalid request")
-//
-//		return err
-//	}
-//
-//	return nil
-//}
-
 func (ctx *APIContext) Decode(dest validator) error {
 	err := json.NewDecoder(ctx.r.Body).Decode(&dest)
 	if err != nil || !dest.IsValid() {
@@ -84,7 +60,7 @@ func (ctx *APIContext) Decode(dest validator) error {
 func (ctx *APIContext) WriteFailure(code int, msg string) {
 	ctx.w.WriteHeader(code)
 
-	data, _ := json.Marshal(response.Error{ErrorMessage: msg})
+	data, _ := json.Marshal(Error{ErrorMessage: msg})
 
 	_, err := ctx.w.Write(data)
 	if err != nil {
