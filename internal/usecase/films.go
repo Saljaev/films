@@ -23,7 +23,7 @@ func NewFilmsUseCase(repo FilmsRepo) *FilmsUseCase {
 func (fs *FilmsUseCase) Add(ctx context.Context, f models.Films) (int, error) {
 	const op = "FilmsUseCase - Add"
 
-	actors := []*entities.Actors{}
+	var actors []*entities.Actors
 	for i := range f.Actors {
 		actors = append(actors, &entities.Actors{
 			FirstName:   f.Actors[i].FirstName,
@@ -59,7 +59,7 @@ func (fs *FilmsUseCase) GetById(ctx context.Context, id int) (*models.Films, err
 		return nil, fmt.Errorf("%s - fr.repo.GetById: %w", op, err)
 	}
 
-	actors := []*models.Actors{}
+	var actors []*models.Actors
 	for i := range films.Actors {
 		actors = append(actors, &models.Actors{
 			FirstName:   films.Actors[i].FirstName,
@@ -209,7 +209,7 @@ func (fs *FilmsUseCase) RateByField(ctx context.Context, field string, increasin
 
 	films, err := fs.repo.RateByField(ctx, field, order)
 	if err != nil {
-		fmt.Errorf("%s - fs.repo.RateByField: %w", op, err)
+		return nil, fmt.Errorf("%s - fs.repo.RateByField: %w", op, err)
 	}
 
 	var res []*models.Films
