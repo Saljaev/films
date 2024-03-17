@@ -60,9 +60,9 @@ func (ar *ActorsRepo) Update(ctx context.Context, a entities.Actors) error {
 	const op = "ActorsRepo - Update"
 
 	query := "UPDATE actors SET " +
-		"first_name = COALESCE(NULLIF($1, ''), first_name) " +
-		"last_name = COALESCE(NULLIF($2, ''), last_name) " +
-		"gender = COALESCE(NULLIF($3, ''), gender) " +
+		"first_name = COALESCE(NULLIF($1, ''), first_name), " +
+		"last_name = COALESCE(NULLIF($2, ''), last_name), " +
+		"gender = COALESCE(NULLIF($3, ''), gender), " +
 		"date_of_birth = COALESCE(NULLIF($4, $5)::timestamp, date_of_birth) " +
 		"WHERE id = $6"
 
@@ -127,7 +127,7 @@ func (ar *ActorsRepo) GetAll(ctx context.Context) ([]*entities.Actors, error) {
 	const op = "ActorsRepo - GetAll"
 
 	query := "SELECT actors.*, films.* " +
-		"FROM actors" +
+		"FROM actors " +
 		"LEFT JOIN actors_from_films actorsfilm ON actorsfilm.actors_id = actors.id " +
 		"LEFT JOIN films ON films.id = actorsfilm.films_id " +
 		"ORDER BY actors.id, films.id"
@@ -145,9 +145,10 @@ func (ar *ActorsRepo) GetAll(ctx context.Context) ([]*entities.Actors, error) {
 		film := entities.Films{}
 		actor := entities.Actors{}
 		rows.Scan(&actor.Id, &actor.FirstName, &actor.LastName, &actor.Gender, &actor.DateOfBirth,
-			&film.Id, &film.Name, &film.Description, &film.Description, &film.ReleaseDate)
+			&film.Id, &film.Name, &film.Description, &film.Rating, &film.ReleaseDate)
 
 		actor.Films = append(actor.Films, &film)
+
 		actors = append(actors, &actor)
 	}
 
