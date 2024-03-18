@@ -4,8 +4,8 @@ info:
   version: "1.0.0"
 servers:
   # Added by API Auto Mocking Plugin
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/r.cf2003_yandex.ru/filmoteka/1.0.0
+#  - description: SwaggerHub API Auto Mocking
+#    url: https://virtserver.swaggerhub.com/r.cf2003_yandex.ru/filmoteka/1.0.0
   - url: https://localhost:8080/saljaev/filmoteka/v1
     description: Local server
 tags:
@@ -28,26 +28,26 @@ paths:
       tags:
         - User
         - users
+        - admins
       requestBody:
         required: true
         content:
-          aplication/json:
+          application/json:
             schema:
               $ref: "#/components/schemas/User"
       responses:
         '200':
           description: Успешная регистрация
           content:
-            aplication/json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/UserID"
         '500':
           description: Ошибка со стороны сервера
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: server error
+                $ref: "#/components/schemas/ErrorJSON500"
 
   /user/login:
     post:
@@ -59,30 +59,28 @@ paths:
       requestBody:
         required: true
         content:
-          aplication/json:
+          application/json:
             schema:
               $ref: "#/components/schemas/User"
       responses:
         '200':
           description: Пользователь аутентифицирован
           content:
-            aplication/json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/UserID"
         '400':
           description: Неправильный логин или пароль
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: invalid login or password
+                $ref: "#/components/schemas/ErrorJSON400"
         '500':
           description: Ошибка со стороны сервера
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: server error
+                $ref: "#/components/schemas/ErrorJSON500"
 
   /user/{id}:
     delete:
@@ -102,30 +100,33 @@ paths:
         '200':
           description: Пользователь удалён
           content:
-            aplication/json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/UserID"
         '400':
           description: Не валидный ID пользователя
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: invalid user id
+                $ref: "#/components/schemas/ErrorJSON400"
+        '401':
+          description: Пользователь не авторизирован
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON401"
         '403':
           description: Недостаточно прав
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: forbidden
+                $ref: "#/components/schemas/ErrorJSON403"
         '500':
           description: Ошибка со стороны сервера
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: server error
+                $ref: "#/components/schemas/ErrorJSON500"
 
 
 
@@ -138,38 +139,42 @@ paths:
       requestBody:
         required: true
         content:
-          aplication/json:
+          application/json:
             schema:
               $ref: "#/components/schemas/FilmWithActor"
       responses:
         '200':
           description: Успешное добавление
           content:
-            aplication/json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/FilmID"
         '400':
           description: Невалидный запрос
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: server error
+                $ref: "#/components/schemas/ErrorJSON400"
+        '401':
+          description: Пользователь не авторизирован
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON401"
         '403':
           description: Недостаточно прав
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: forbidden
+                $ref: "#/components/schemas/ErrorJSON403"
         '500':
           description: Ошибка со стороны сервера
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: server error
-  /film/{id}:
+                $ref: "#/components/schemas/ErrorJSON500"
+
+  /film/update/{id}:
     post:
       summary: Обновление информации о фильме
       tags:
@@ -178,37 +183,41 @@ paths:
       requestBody:
         required: true
         content:
-          aplication/json:
+          application/json:
             schema:
               $ref: "#/components/schemas/FilmWithActorToUpdate"
       responses:
         '200':
           description: Успешное обновление
           content:
-            aplication/json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/FilmID"
         '400':
-          description: Невалидный запрос
+          description: Невалидный ID фильма
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: server error
+                $ref: "#/components/schemas/ErrorJSON400"
+        '401':
+          description: Пользователь не авторизирован
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON401"
         '403':
           description: Недостаточно прав
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: forbidden
+                $ref: "#/components/schemas/ErrorJSON403"
         '500':
           description: Ошибка со стороны сервера
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: server error
+                $ref: "#/components/schemas/ErrorJSON500"
+  /film/{id}:
     delete:
       summary: Удаление фильма
       tags:
@@ -226,16 +235,21 @@ paths:
         '200':
           description: Фильм удалён
           content:
-            aplication/json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/FilmID"
         '400':
-          description: Не валидный ID фильма
+          description: Неавлидный ID фильма
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: invalid film id
+                $ref: "#/components/schemas/ErrorJSON400"
+        '401':
+          description: Пользователь не авторизирован
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON401"
         '403':
           description: Недостаточно прав
           content:
@@ -246,10 +260,55 @@ paths:
         '500':
           description: Ошибка со стороны сервера
           content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON500"
+
+  /film/actor/:
+    delete:
+      summary: Удаление актера из фильма
+      tags:
+        - Film
+        - admins
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FilmsIDActorID"
+      responses:
+        '200':
+          description: Фильм удалён
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilmID"
+        '400':
+          description: Невалидный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON400"
+        '401':
+          description: Пользователь не авторизирован
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON401"
+        '403':
+          description: Недостаточно прав
+          content:
             text/plain:
               schema:
                 type: string
-                example: server error
+                example: forbidden
+        '500':
+          description: Ошибка со стороны сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON500"
+
   /film/sort:
     post:
       description: По умолчанию поле для сортировки - rating, по убыванию
@@ -261,28 +320,27 @@ paths:
       requestBody:
         required: false
         content:
-          aplication/json:
+          application/json:
             schema:
               $ref: "#/components/schemas/FilmSort"
       responses:
         '200':
           description: Успешное получение
           content:
-            aplication/json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Films"
         '500':
           description: Ошибка со стороны сервера
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: server error
+                $ref: "#/components/schemas/ErrorJSON500"
 
   /films/search:
     post:
       description: Получение списка фильмов по фрагменту фильма или имени актера, при указании обоих фрагметов происходит объединение множеств
-      summary: Поиск фильмов по фрагменту названия фильма/имени актера
+      summary: Поиск фильмов по фрагменту названия фильма или имени актера
       tags:
         - Film
         - admins
@@ -290,87 +348,198 @@ paths:
       requestBody:
         required: true
         content:
-          aplication/json:
+          application/json:
             schema:
               $ref: "#/components/schemas/FilmSearch"
       responses:
         '200':
           description: Успешный поиск
           content:
-            aplication/json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/FilmsWithActor"
         '500':
           description: Ошибка со стороны сервера
           content:
-            text/plain:
-              schema:
-                type: string
-                example: server error
-
-
-
-  /inventory:
-    get:
-      tags:
-        - developers
-      summary: searches inventory
-      operationId: searchInventory
-      description: |
-        By passing in the appropriate options, you can search for
-        available inventory in the system
-      parameters:
-        - in: query
-          name: searchString
-          description: pass an optional search string for looking up inventory
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: skip
-          description: number of records to skip for pagination
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: maximum number of records to return
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-            maximum: 50
-      responses:
-        '200':
-          description: search results matching criteria
-          content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/InventoryItem'
-        '400':
-          description: bad input parameter
+                $ref: "#/components/schemas/ErrorJSON500"
+  /actor:
     post:
+      summary: Добавление актера
       tags:
+        - Actor
         - admins
-      summary: adds an inventory item
-      operationId: addInventory
-      description: Adds an item to the system
-      responses:
-        '201':
-          description: item created
-        '400':
-          description: 'invalid input, object invalid'
-        '409':
-          description: an existing item already exists
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InventoryItem'
-        description: Inventory item to add
+              $ref: "#/components/schemas/Actor"
+      responses:
+        '200':
+          description: Успешное добавление
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActorID"
+        '400':
+          description: Невалидный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON400"
+        '401':
+          description: Пользователь не авторизирован
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON401"
+        '403':
+          description: Недостаточно прав
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: forbidden
+        '500':
+          description: Ошибка со стороны сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON500"
+  /actor/{id}:
+    post:
+      description: Требуется чтобы минимум одно поле было не пустое
+      summary: Обновление актера
+      tags:
+        - Actor
+        - admins
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActorToUpdate"
+      responses:
+        '200':
+          description: Успешное обновление
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActorID"
+        '400':
+          description: Невалидный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON400"
+        '401':
+          description: Пользователь не авторизирован
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON401"
+        '403':
+          description: Недостаточно прав
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: forbidden
+        '500':
+          description: Ошибка со стороны сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON500"
+
+    delete:
+      summary: Удаление актера по ID
+      tags:
+        - Actor
+        - admins
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID актера
+          schema:
+            type: string
+            example: 1
+      responses:
+        '200':
+          description: Успешное удаление
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActorID"
+        '400':
+          description: Невалидный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON400"
+        '401':
+          description: Пользователь не авторизирован
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON401"
+        '403':
+          description: Недостаточно прав
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: forbidden
+        '500':
+          description: Ошибка со стороны сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON500"
+  /actors:
+    get:
+      summary: Получение списка актеров
+      tags:
+        - Actor
+        - users
+        - admins
+      responses:
+        '200':
+          description: Успешное получение актеров с фильмами
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Actor"
+        '400':
+          description: Невалидный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON400"
+        '401':
+          description: Пользователь не авторизирован
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON401"
+        '403':
+          description: Недостаточно прав
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: forbidden
+        '500':
+          description: Ошибка со стороны сервера
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorJSON500"
+
+
 components:
   schemas:
     UserID:
@@ -407,7 +576,7 @@ components:
           example: Titanic
           minLength: 1
           maxLength: 150
-        descripion:
+        description:
           type: string
           example: Tragic story
           maxLength: 1000
@@ -429,7 +598,7 @@ components:
         - gender
         - date_of_birth
       properties:
-        firts_name:
+        first_name:
           type: string
           example: Leonardo
         last_name:
@@ -451,6 +620,35 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/Actor"
+
+    ActorID:
+      type: object
+      properties:
+        actor_id:
+          type: integer
+          example: 1
+
+    ActorToUpdate:
+      type: object
+      properties:
+        first_name:
+          type: string
+          example: Leonardo
+        last_name:
+          type: string
+          example: DiCaprio
+        gender:
+          type: string
+          enum:
+            - male
+            - female
+            - other
+          example: male
+        date_of_birth:
+          type: string
+          format: data-time
+          example: '1974-11-11'
+
     FilmWithActorToUpdate:
       type: object
       properties:
@@ -514,6 +712,36 @@ components:
       items:
         $ref: "#/components/schemas/Film"
 
+    ActorWithFilm:
+      type: object
+      properties:
+        first_name:
+          type: string
+          example: Leonardo
+        last_name:
+          type: string
+          example: DiCaprio
+        gender:
+          type: string
+          enum:
+            - male
+            - female
+            - other
+          example: male
+        date_of_birth:
+          type: string
+          format: data-time
+          example: '1974-11-11'
+        films:
+          type: array
+          items:
+            $ref: "#/components/schemas/Film"
+
+    ActorsWithFilms:
+      type: array
+      items:
+        $ref: "#/components/schemas/ActorWithFilm"
+
     FilmsWithActor:
       type: array
       items:
@@ -552,39 +780,43 @@ components:
           type: string
           example: ona ic
 
-    InventoryItem:
+    FilmsIDActorID:
       type: object
       required:
-        - id
-        - name
-        - manufacturer
-        - releaseDate
+        - film_id
+        - actor_id
       properties:
-        id:
-          type: string
-          format: uuid
-          example: d290f1ee-6c54-4b01-90e6-d701748f0851
-        name:
-          type: string
-          example: Widget Adapter
-        releaseDate:
-          type: string
-          format: date-time
-          example: '2016-08-29T09:12:33.001Z'
-        manufacturer:
-          $ref: '#/components/schemas/Manufacturer'
-    Manufacturer:
-      required:
-        - name
-      properties:
-        name:
-          type: string
-          example: ACME Corporation
-        homePage:
-          type: string
-          format: url
-          example: 'https://www.acme-corp.com'
-        phone:
-          type: string
-          example: 408-867-5309
+        film_id:
+          type: integer
+          example: 11
+        actor_id:
+          type: integer
+          example: 1
+
+    ErrorJSON400:
       type: object
+      properties:
+        error_message:
+          type: string
+          example: bad request
+
+    ErrorJSON401:
+      type: object
+      properties:
+        error_message:
+          type: string
+          example: login to your account
+
+    ErrorJSON403:
+      type: object
+      properties:
+        error_message:
+          type: string
+          example: forbidden
+
+    ErrorJSON500:
+      type: object
+      properties:
+        error_message:
+          type: string
+          example: server error
