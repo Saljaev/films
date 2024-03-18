@@ -32,7 +32,6 @@ func Run() {
 
 	log := setupPrettySlog()
 
-	// TODO: init db
 	PG_URL := cfg.StoragePath
 
 	db, err := sql.Open("postgres", PG_URL)
@@ -74,10 +73,11 @@ func Run() {
 	router.Handle("GET /actors", actorsHandler.GetWithFilms)
 
 	router.Handle("POST /film", m.Validate, m.CheckRole, filmsHandler.Add)
-	router.Handle("UPDATE /film/", m.Validate, m.CheckRole, filmsHandler.Update)
+	router.Handle("POST /film/update/", m.Validate, m.CheckRole, filmsHandler.Update)
 	router.Handle("DELETE /film/", m.Validate, m.CheckRole, filmsHandler.Delete)
-	router.Handle("GET /film.search_by_fragment", filmsHandler.SearchByFragment)
-	router.Handle("GET /film.get", filmsHandler.GetWithSort)
+	router.Handle("DELETE /film/actor", m.Validate, m.CheckRole, filmsHandler.DeleteActor)
+	router.Handle("POST /film/search", filmsHandler.SearchByFragment)
+	router.Handle("POST /film/sort", filmsHandler.GetWithSort)
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
