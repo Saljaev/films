@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 	"tiny/internal/entities"
@@ -12,10 +11,6 @@ import (
 type UserSessionsUseCase struct {
 	repo SessionRepo
 }
-
-var (
-	ErrNoSession = errors.New("session not found")
-)
 
 var _ Sessions = (*UserSessionsUseCase)(nil)
 
