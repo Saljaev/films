@@ -118,7 +118,6 @@ func (fr *FilmsRepo) Update(ctx context.Context, f entities.Films) error {
 		return fmt.Errorf("%s - res.RowsAffected: %w", op, err)
 	}
 
-	// TODO: maybe change error
 	if rowsAffected == 0 {
 		return fmt.Errorf(errors.New("no data updating").Error())
 	}

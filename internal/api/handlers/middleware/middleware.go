@@ -7,7 +7,6 @@ import (
 )
 
 type Middleware struct {
-	// TODO: I change session type
 	users      usecase.Users
 	sessions   usecase.Sessions
 	jwt        *userhandler.JWTManager
