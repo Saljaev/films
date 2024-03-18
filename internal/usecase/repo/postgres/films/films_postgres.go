@@ -83,7 +83,7 @@ func (fr *FilmsRepo) GetById(ctx context.Context, id int) (*entities.Films, erro
 
 	film := entities.Films{}
 
-	query := "DELETE FROM films WHERE id = $1"
+	query := "SELECT * FROM films WHERE id = $1"
 
 	row := fr.QueryRowContext(ctx, query, id)
 	err := row.Scan(&film.Id, &film.Name, &film.Description, &film.Rating, &film.ReleaseDate)
@@ -178,6 +178,7 @@ func (fr *FilmsRepo) Delete(ctx context.Context, id int) error {
 	defer tx.Rollback()
 
 	query := "DELETE FROM actors_from_films WHERE films_id = $1"
+
 	_, err = tx.ExecContext(ctx, query, id)
 	if err != nil {
 		fmt.Errorf("%s - tx.ExecContext - actors_from_films: %w", op, err)
