@@ -27,7 +27,14 @@ const ActorValidDate = 1800
 
 func ValidateDate(dateOfBirth string) bool {
 	date, err := time.Parse(time.DateOnly, dateOfBirth)
-	return err != nil || date.Year() > ActorValidDate || date.Year() < time.Now().Year()
+	if err != nil {
+		return false
+	} else if date.Year() < ActorValidDate || date.Year() > time.Now().Year() {
+		return false
+	}
+
+	return true
+
 }
 
 type Films struct {

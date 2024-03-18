@@ -2,6 +2,7 @@ package filmshandler
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -29,8 +30,7 @@ type (
 )
 
 func (req *FilmsSearchByFragmentRequest) IsValid() bool {
-	name := strings.Split(req.ActorName, " ")
-	return (req.ActorName != "" && len(name) <= 2) || req.Name != ""
+	return req.Name != "" || req.ActorName != ""
 }
 
 func GenerateResponse(films []*models.Films, res map[string]*FilmsWithActorsResponse) {
@@ -96,7 +96,8 @@ func (h *FilmsHandler) SearchByFragment(ctx *utilapi.APIContext) {
 			if len(name) == 1 {
 				name = append(name, " ")
 			}
-			filmsByActorName, err := h.films.SearchByActorName(context.Background(), name[s%2], name[s%2])
+			fmt.Println(name[s%2])
+			filmsByActorName, err := h.films.SearchByActorName(context.Background(), name[s%2], name[s+1%2])
 			if err != nil {
 				ctx.Error("failed to search film by actor name", err)
 				ctx.WriteFailure(http.StatusInternalServerError, "server error")

@@ -27,8 +27,14 @@ func (req *ActorsUpdateRequest) IsValid() bool {
 	}
 	if req.Gender != "" && !ValidateGender(req.Gender) {
 		return false
+
 	}
-	return ValidateDate(req.DateOfBirth)
+	if req.DateOfBirth != "" && !ValidateDate(req.DateOfBirth) {
+		return false
+
+	}
+
+	return true
 }
 
 func (h *ActorsHandler) Update(ctx *utilapi.APIContext) {

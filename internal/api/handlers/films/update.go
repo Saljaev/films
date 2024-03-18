@@ -37,10 +37,10 @@ func (req *FilmsUpdateRequest) IsValid() bool {
 	if req.Rating != 0 && req.Rating < 0 || req.Rating > 10 {
 		return false
 	}
-	
+
 	if req.ReleaseDate != "" {
 		date, err := time.Parse(time.DateOnly, req.ReleaseDate)
-		if err != nil || date.Year() <= FilmValidDate {
+		if err != nil || date.Year() <= FilmValidDate || date.Year() > time.Now().Year() {
 			return false
 		}
 	}

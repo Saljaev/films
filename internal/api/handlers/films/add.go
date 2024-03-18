@@ -23,6 +23,10 @@ type FilmAddResponse struct {
 }
 
 func (a *Actors) IsValid() bool {
+	if a.FirstName == "" || a.LastName == "" || a.Gender == "" || a.DateOfBirth == "" {
+		return false
+	}
+
 	validGenders := map[string]struct{}{
 		"male":   {},
 		"female": {},
@@ -38,7 +42,7 @@ func (req *FilmsAddRequest) IsValid() bool {
 	date, err := time.Parse(time.DateOnly, req.ReleaseDate)
 	return (utf8.RuneCountInString(req.Name) >= 1 && utf8.RuneCountInString(req.Name) <= 150) &&
 		utf8.RuneCountInString(req.Description) <= 1000 && req.Rating > 0 && req.Rating <= 10 &&
-		err == nil && date.Year() >= FilmValidDate
+		err == nil && date.Year() >= FilmValidDate && date.Year() <= time.Now().Year()
 }
 
 func (f *FilmsHandler) Add(ctx *utilapi.APIContext) {
