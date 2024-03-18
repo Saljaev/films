@@ -10,13 +10,3 @@ type Actors struct {
 	DateOfBirth time.Time
 	Films       []*Films
 }
-
-//func (a *Actors) IsValid() bool {
-//	validGenders := map[string]struct{}{
-//		"male":   {},
-//		"female": {},
-//		"other":  {},
-//	}
-//	_, isValid := validGenders[a.Gender]
-//	return isValid && a.DateOfBirth.Year() >= 1800
-//}
