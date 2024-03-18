@@ -50,7 +50,7 @@ func (fs *FilmsUseCase) Add(ctx context.Context, f models.Films) (int, error) {
 }
 
 func (fs *FilmsUseCase) GetById(ctx context.Context, id int) (*models.Films, error) {
-	const op = "FilmsUseCase - Add"
+	const op = "FilmsUseCase - GetById"
 
 	films, err := fs.repo.GetById(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {
