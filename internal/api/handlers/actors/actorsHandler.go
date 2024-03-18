@@ -23,9 +23,11 @@ func ValidateGender(gender string) bool {
 	return isValid
 }
 
+const ActorValidDate = 1800
+
 func ValidateDate(dateOfBirth string) bool {
 	date, err := time.Parse(time.DateOnly, dateOfBirth)
-	return err != nil || date.Year() > 1800 || date.Year() < time.Now().Year()
+	return err != nil || date.Year() > ActorValidDate || date.Year() < time.Now().Year()
 }
 
 type Films struct {

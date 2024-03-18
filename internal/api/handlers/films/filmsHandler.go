@@ -10,6 +10,8 @@ func NewFilmsHandler(f usecase.Films) *FilmsHandler {
 	return &FilmsHandler{f}
 }
 
+const FilmValidDate = 1500
+
 type Films struct {
 	Name        string  `json:"name"`
 	Description string  `json:"description"`

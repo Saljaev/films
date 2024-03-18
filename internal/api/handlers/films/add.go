@@ -38,7 +38,7 @@ func (req *FilmsAddRequest) IsValid() bool {
 	date, err := time.Parse(time.DateOnly, req.ReleaseDate)
 	return (utf8.RuneCountInString(req.Name) >= 1 && utf8.RuneCountInString(req.Name) <= 150) &&
 		utf8.RuneCountInString(req.Description) <= 1000 && req.Rating > 0 && req.Rating <= 10 &&
-		err == nil && date.Year() >= 1700
+		err == nil && date.Year() >= FilmValidDate
 }
 
 func (f *FilmsHandler) Add(ctx *utilapi.APIContext) {

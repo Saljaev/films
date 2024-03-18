@@ -40,7 +40,7 @@ func (req *FilmsUpdateRequest) IsValid() bool {
 	// TODO: add validate time
 	if req.ReleaseDate != "" {
 		date, err := time.Parse(time.DateOnly, req.ReleaseDate)
-		if err != nil || date.Year() <= 1700 {
+		if err != nil || date.Year() <= FilmValidDate {
 			return false
 		}
 	}
