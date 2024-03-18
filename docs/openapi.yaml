@@ -3,9 +3,6 @@ info:
   title: Фильмотека OpenAPI спецификация
   version: "1.0.0"
 servers:
-  # Added by API Auto Mocking Plugin
-#  - description: SwaggerHub API Auto Mocking
-#    url: https://virtserver.swaggerhub.com/r.cf2003_yandex.ru/filmoteka/1.0.0
   - url: https://localhost:8080/saljaev/filmoteka/v1
     description: Local server
 tags:
@@ -337,7 +334,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorJSON500"
 
-  /films/search:
+  /film/search:
     post:
       description: Получение списка фильмов по фрагменту фильма или имени актера, при указании обоих фрагметов происходит объединение множеств
       summary: Поиск фильмов по фрагменту названия фильма или имени актера
@@ -779,6 +776,8 @@ components:
         actor_name:
           type: string
           example: ona ic
+          pattern: "{first_name} {last_name}"
+          description: значение имени должно содержать максимум два слова
 
     FilmsIDActorID:
       type: object
