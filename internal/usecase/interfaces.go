@@ -32,6 +32,7 @@ type (
 		SearchByFilmName(ctx context.Context, name string) ([]*models.Films, error)
 		SearchByActorName(ctx context.Context, firstName, lastName string) ([]*models.Films, error)
 		RateByField(ctx context.Context, fragment string, increasing bool) ([]*models.Films, error)
+		DeleteActor(ctx context.Context, filmID, actorID int) error
 	}
 
 	FilmsRepo interface {
@@ -42,6 +43,7 @@ type (
 		SearchByFilmName(ctx context.Context, name string) ([]*entities.Films, error)
 		SearchByActorName(ctx context.Context, firstName, lastName string) ([]*entities.Films, error)
 		RateByField(ctx context.Context, fragment string, increasing string) ([]*entities.Films, error)
+		DeleteActor(ctx context.Context, filmID, actorID int) error
 	}
 
 	Users interface {

@@ -295,3 +295,16 @@ func (fr *FilmsRepo) RateByField(ctx context.Context, fragment string, increasin
 
 	return films, nil
 }
+
+func (fr *FilmsRepo) DeleteActor(ctx context.Context, filmID, actorID int) error {
+	const op = "FilmsRepo - DeleteActor"
+
+	query := "DELETE FROM actors_from_films WHERE actors_id = $1 AND films_id = $2"
+
+	_, err := fr.ExecContext(ctx, query, actorID, filmID)
+	if err != nil {
+		return fmt.Errorf("%s - fr.ExecContext: %w", op, err)
+	}
+
+	return nil
+}

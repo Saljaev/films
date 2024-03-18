@@ -227,3 +227,14 @@ func (fs *FilmsUseCase) RateByField(ctx context.Context, field string, increasin
 
 	return res, nil
 }
+
+func (fs *FilmsUseCase) DeleteActor(ctx context.Context, filmID, actorID int) error {
+	const op = "FilmsUseCase - DeleteActor"
+
+	err := fs.repo.DeleteActor(ctx, filmID, actorID)
+	if err != nil {
+		return fmt.Errorf("%s - fs.repo.DeleteActor: %w", op, err)
+	}
+
+	return nil
+}
