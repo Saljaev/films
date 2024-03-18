@@ -37,18 +37,24 @@ func GenerateResponse(films []*models.Films, res map[string]*FilmsWithActorsResp
 	for i := range films {
 		film, ok := res[films[i].Name]
 
-		actor := Actors{
-			FirstName:   films[i].Actors[0].FirstName,
-			LastName:    films[i].Actors[0].LastName,
-			Gender:      films[i].Actors[0].Gender,
-			DateOfBirth: films[i].Actors[0].DateOfBirth.Format(time.DateOnly),
+		var actor Actors
+
+		if films[i].Actors[0].Id != 0 {
+			actor = Actors{
+				FirstName:   films[i].Actors[0].FirstName,
+				LastName:    films[i].Actors[0].LastName,
+				Gender:      films[i].Actors[0].Gender,
+				DateOfBirth: films[i].Actors[0].DateOfBirth.Format(time.DateOnly),
+			}
 		}
 
 		if ok {
 			film.Actors[films[i].Actors[0].Id] = &actor
 		} else {
 			actors := make(map[int]*Actors)
-			actors[films[i].Actors[0].Id] = &actor
+			if films[i].Actors[0].Id != 0 {
+				actors[films[i].Actors[0].Id] = &actor
+			}
 
 			res[films[i].Name] = &FilmsWithActorsResponse{
 				Name:        films[i].Name,
@@ -87,6 +93,9 @@ func (h *FilmsHandler) SearchByFragment(ctx *utilapi.APIContext) {
 	if req.ActorName != "" {
 		for s := 0; s < 2; s++ {
 			name := strings.Split(req.ActorName, " ")
+			if len(name) == 1 {
+				name = append(name, " ")
+			}
 			filmsByActorName, err := h.films.SearchByActorName(context.Background(), name[s%2], name[s%2])
 			if err != nil {
 				ctx.Error("failed to search film by actor name", err)
@@ -98,10 +107,10 @@ func (h *FilmsHandler) SearchByFragment(ctx *utilapi.APIContext) {
 		}
 	}
 
-	var res *FilmsSearchByFragmentResponse
+	var f []*FilmsWithActorsResponse
 
-	for _, v := range films {
-		res.Films = append(res.Films, v)
+	for i := range films {
+		f = append(f, films[i])
 	}
 
 	if len(films) == 0 {
@@ -109,6 +118,6 @@ func (h *FilmsHandler) SearchByFragment(ctx *utilapi.APIContext) {
 		ctx.SuccessWithData(FilmsSearchByFragmentResponse{nil})
 	} else {
 		ctx.Info("successful film search", "count films", len(films))
-		ctx.SuccessWithData(FilmsSearchByFragmentResponse{res.Films})
+		ctx.SuccessWithData(FilmsSearchByFragmentResponse{f})
 	}
 }
