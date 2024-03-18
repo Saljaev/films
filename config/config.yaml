@@ -1,8 +1,4 @@
-#FOR DOCKER
-#storage_path: postgres://saljaev:secret@db:5432/kosloeb?sslmode=disable
-
-#FOR LOCAL
-storage_path: postgres://kosloeb:secret@localhost:5432/kosloeb?sslmode=disable
+storage_path: postgres://saljaev:secret@db:5432/kosloeb?sslmode=disable
 http_server:
   address: "0.0.0.0:8080"
   timeout: 4s
